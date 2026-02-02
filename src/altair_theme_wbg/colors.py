@@ -5,7 +5,7 @@ https://wbg-vis-design.vercel.app/colors
 """
 
 # ---------------------------------------------------------------------------
-# Categorical palette (use in listed order for max distinguishability)
+# Categorical palette
 # ---------------------------------------------------------------------------
 CATEGORICAL = [
     "#34A7F2",  # cat1
@@ -19,7 +19,7 @@ CATEGORICAL = [
     "#DDDA21",  # cat9
 ]
 
-# Accessible text variants (higher contrast on white)
+# Accessible text variants
 CATEGORICAL_TEXT = [
     "#106CA1",  # cat1Text
     "#B65F0C",  # cat2Text
@@ -61,7 +61,7 @@ REGIONS_TEXT = {
     "WLD": "#081079",
 }
 
-# Secondary region series (each region has 4 shades)
+# Secondary region series
 REGIONS_SECONDARY = {
     "NAC": ["#34A7F2", "#80D2E8", "#163C6C", "#106CA1"],
     "SSF": ["#FF9800", "#FFD554", "#8F3B18", "#C2660D"],
@@ -104,7 +104,7 @@ URBANIZATION = {
 }
 
 # ---------------------------------------------------------------------------
-# Age groups (youngest → oldest)
+# Age groups
 # ---------------------------------------------------------------------------
 AGE = [
     "#F8A8DF",  # youngest

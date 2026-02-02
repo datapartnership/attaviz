@@ -26,10 +26,10 @@ import altair as alt
 # Colors
 # ===========================================================================
 # All colors are sourced from the WBG Data Visualization Style Guide:
-# https://wbg-vis-design.vercel.app/colors
+# https://worldbank.github.io/data-visualization-style-guide/colors
 
 # ---------------------------------------------------------------------------
-# Categorical palette (use in listed order for max distinguishability)
+# Categorical palette
 # ---------------------------------------------------------------------------
 CATEGORICAL = [
     "#34A7F2",  # cat1
@@ -43,7 +43,7 @@ CATEGORICAL = [
     "#DDDA21",  # cat9
 ]
 
-# Accessible text variants (higher contrast on white)
+# Text variants
 CATEGORICAL_TEXT = [
     "#106CA1",  # cat1Text
     "#B65F0C",  # cat2Text
@@ -85,7 +85,7 @@ REGIONS_TEXT = {
     "WLD": "#081079",
 }
 
-# Secondary region series (each region has 4 shades)
+# Secondary region series
 REGIONS_SECONDARY = {
     "NAC": ["#34A7F2", "#80D2E8", "#163C6C", "#106CA1"],
     "SSF": ["#FF9800", "#FFD554", "#8F3B18", "#C2660D"],
@@ -128,7 +128,7 @@ URBANIZATION = {
 }
 
 # ---------------------------------------------------------------------------
-# Age groups (youngest -> oldest)
+# Age groups
 # ---------------------------------------------------------------------------
 AGE = [
     "#F8A8DF",  # youngest
@@ -230,11 +230,9 @@ TEXT_SUBTLE = "#666666"
 # Theme
 # ===========================================================================
 
-FONT = "Open Sans, sans-serif"
+from typing import Literal
 
-FONT_SIZE_S = 13
-FONT_SIZE_M = 15
-FONT_SIZE_L = 18
+FONT = "Open Sans, sans-serif"
 
 FONT_WEIGHT_REGULAR = 400
 FONT_WEIGHT_SEMIBOLD = 600
@@ -243,14 +241,161 @@ FONT_WEIGHT_BOLD = 700
 LINE_HEIGHT_SHORT = 1.2  # titles, labels
 LINE_HEIGHT_LONG = 1.5  # notes, paragraphs
 
+# ---------------------------------------------------------------------------
+# Responsive sizing constants
+# ---------------------------------------------------------------------------
+SizeCategory = Literal["small", "medium", "large"]
 
-def wbg_theme() -> dict:
-    """Return the WBG Vega-Lite theme configuration."""
+SIZE_BREAKPOINTS = {"small": 400, "medium": 700}
+
+# Typography scales by size category (S/M/L font sizes)
+TYPOGRAPHY: dict[str, dict[str, int]] = {
+    "small": {"S": 12, "M": 14, "L": 16},
+    "medium": {"S": 13, "M": 15, "L": 18},
+    "large": {"S": 14, "M": 16, "L": 20},
+}
+
+# Spacing scales by size category
+SPACING: dict[str, dict[str, int]] = {
+    "small": {"xxs": 2, "xs": 4, "s": 6, "m": 12, "l": 14, "xl": 16},
+    "medium": {"xxs": 3, "xs": 6, "s": 9, "m": 15, "l": 18, "xl": 21},
+    "large": {"xxs": 4, "xs": 8, "s": 12, "m": 16, "l": 20, "xl": 24},
+}
+
+# Named aspect ratios
+ASPECT_RATIOS: dict[str, float] = {
+    "16:9": 16 / 9,
+    "4:3": 4 / 3,
+    "3:2": 3 / 2,
+    "1:1": 1.0,
+    "2:1": 2.0,
+    "square": 1.0,
+    "widescreen": 16 / 9,
+}
+
+# Default dimensions for each size category (using 3:2 aspect ratio)
+DEFAULT_DIMENSIONS: dict[str, tuple[int, int]] = {
+    "small": (350, 233),
+    "medium": (600, 400),
+    "large": (800, 533),
+}
+
+
+# ---------------------------------------------------------------------------
+# Helper functions
+# ---------------------------------------------------------------------------
+def _get_size_category(width: int) -> SizeCategory:
+    """Return 'small', 'medium', or 'large' based on chart width."""
+    if width < SIZE_BREAKPOINTS["small"]:
+        return "small"
+    elif width < SIZE_BREAKPOINTS["medium"]:
+        return "medium"
+    else:
+        return "large"
+
+
+def calculate_dimensions(
+    width: int,
+    aspect_ratio: str | float = "3:2",
+) -> tuple[int, int]:
+    """Calculate (width, height) from width and aspect ratio.
+
+    Parameters
+    ----------
+    width
+        The desired chart width in pixels.
+    aspect_ratio
+        Either a named ratio ('16:9', '4:3', '3:2', '1:1', '2:1', 'square',
+        'widescreen') or a numeric ratio (width/height).
+
+    Returns
+    -------
+    tuple[int, int]
+        The (width, height) tuple.
+
+    Examples
+    --------
+    >>> calculate_dimensions(800, '16:9')
+    (800, 450)
+    >>> calculate_dimensions(600, '3:2')
+    (600, 400)
+    >>> calculate_dimensions(400, 1.5)
+    (400, 267)
+    """
+    if isinstance(aspect_ratio, str):
+        ratio = ASPECT_RATIOS.get(aspect_ratio)
+        if ratio is None:
+            raise ValueError(
+                f"Unknown aspect ratio '{aspect_ratio}'. "
+                f"Valid options: {list(ASPECT_RATIOS.keys())}"
+            )
+    else:
+        ratio = float(aspect_ratio)
+
+    height = round(width / ratio)
+    return (width, height)
+
+
+def wbg_theme(
+    size: SizeCategory = "medium",
+    *,
+    width: int | None = None,
+    height: int | None = None,
+    aspect_ratio: str | float | None = None,
+) -> dict:
+    """Return the WBG Vega-Lite theme configuration.
+
+    Parameters
+    ----------
+    size
+        Size category for typography and spacing: 'small', 'medium', or 'large'.
+        Ignored if ``width`` is provided (auto-detected from width).
+    width
+        Explicit chart width in pixels. If provided, the size category is
+        auto-detected based on breakpoints (<400px = small, 400-700px = medium,
+        >700px = large).
+    height
+        Explicit chart height in pixels. If not provided and ``width`` is set,
+        calculated from ``aspect_ratio``.
+    aspect_ratio
+        Aspect ratio for calculating height from width. Can be a named ratio
+        ('16:9', '4:3', '3:2', '1:1', '2:1', 'square', 'widescreen') or a
+        numeric ratio (width/height). Defaults to '3:2'.
+
+    Returns
+    -------
+    dict
+        A Vega-Lite theme configuration dictionary.
+
+    Examples
+    --------
+    >>> wbg_theme()  # Default medium size, 600x400
+    >>> wbg_theme(size='large')  # Large typography, 800x533
+    >>> wbg_theme(width=900, aspect_ratio='16:9')  # Custom dimensions
+    """
+    # Determine size category and dimensions
+    if width is not None:
+        size = _get_size_category(width)
+        if height is None:
+            _, height = calculate_dimensions(width, aspect_ratio or "3:2")
+        chart_width, chart_height = width, height
+    else:
+        chart_width, chart_height = DEFAULT_DIMENSIONS[size]
+        if height is not None:
+            chart_height = height
+
+    typo = TYPOGRAPHY[size]
+    space = SPACING[size]
+
+    font_s = typo["S"]
+    font_m = typo["M"]
+    font_l = typo["L"]
+
     return {
         "config": {
             # -- Background -------------------------------------------------
             "background": "white",
-            "padding": 20,
+            "padding": space["xl"],
             # -- Default mark properties ------------------------------------
             "mark": {
                 "tooltip": True,
@@ -299,18 +444,18 @@ def wbg_theme() -> dict:
             # -- Title & subtitle -------------------------------------------
             "title": {
                 "font": FONT,
-                "fontSize": FONT_SIZE_L,
+                "fontSize": font_l,
                 "fontWeight": FONT_WEIGHT_BOLD,
-                "lineHeight": round(FONT_SIZE_L * LINE_HEIGHT_SHORT),
+                "lineHeight": round(font_l * LINE_HEIGHT_SHORT),
                 "color": TEXT,
                 "anchor": "start",
-                "offset": 12,
+                "offset": space["s"],
                 "subtitleFont": FONT,
-                "subtitleFontSize": FONT_SIZE_M,
+                "subtitleFontSize": font_m,
                 "subtitleFontWeight": FONT_WEIGHT_REGULAR,
-                "subtitleLineHeight": round(FONT_SIZE_M * LINE_HEIGHT_SHORT),
+                "subtitleLineHeight": round(font_m * LINE_HEIGHT_SHORT),
                 "subtitleColor": TEXT_SUBTLE,
-                "subtitlePadding": 6,
+                "subtitlePadding": space["s"],
             },
             # -- Axes -------------------------------------------------------
             "axis": {
@@ -320,18 +465,18 @@ def wbg_theme() -> dict:
                 "gridDash": [4, 2],
                 "gridWidth": 1,
                 "labelFont": FONT,
-                "labelFontSize": FONT_SIZE_S,
+                "labelFontSize": font_s,
                 "labelFontWeight": FONT_WEIGHT_REGULAR,
                 "labelColor": TEXT_SUBTLE,
-                "labelPadding": 8,
+                "labelPadding": space["xs"],
                 "tickColor": GREY_200,
                 "tickSize": 5,
                 "tickCount": 5,
                 "titleFont": FONT,
-                "titleFontSize": FONT_SIZE_S,
+                "titleFontSize": font_s,
                 "titleFontWeight": FONT_WEIGHT_SEMIBOLD,
                 "titleColor": TEXT,
-                "titlePadding": 10,
+                "titlePadding": space["s"],
             },
             "axisX": {
                 "grid": False,
@@ -354,18 +499,18 @@ def wbg_theme() -> dict:
             # -- Legend ------------------------------------------------------
             "legend": {
                 "labelFont": FONT,
-                "labelFontSize": FONT_SIZE_S,
+                "labelFontSize": font_s,
                 "labelFontWeight": FONT_WEIGHT_SEMIBOLD,
                 "labelColor": TEXT,
                 "titleFont": FONT,
-                "titleFontSize": FONT_SIZE_S,
+                "titleFontSize": font_s,
                 "titleFontWeight": FONT_WEIGHT_SEMIBOLD,
                 "titleColor": TEXT,
-                "titlePadding": 8,
+                "titlePadding": space["xs"],
                 "symbolSize": 196,  # 14x14 px dot
                 "symbolStrokeWidth": 0,
-                "padding": 16,
-                "offset": 4,
+                "padding": space["m"],
+                "offset": space["xxs"],
                 "orient": "right",
                 "labelLimit": 200,
                 "titleLimit": 200,
@@ -373,8 +518,8 @@ def wbg_theme() -> dict:
             # -- View -------------------------------------------------------
             "view": {
                 "stroke": None,
-                "continuousWidth": 600,
-                "continuousHeight": 400,
+                "continuousWidth": chart_width,
+                "continuousHeight": chart_height,
             },
             # -- Color ranges -----------------------------------------------
             "range": {
@@ -393,28 +538,121 @@ def wbg_theme() -> dict:
             # -- Header (facets) --------------------------------------------
             "header": {
                 "labelFont": FONT,
-                "labelFontSize": FONT_SIZE_S,
+                "labelFontSize": font_s,
                 "labelFontWeight": FONT_WEIGHT_SEMIBOLD,
                 "labelColor": TEXT,
                 "titleFont": FONT,
-                "titleFontSize": FONT_SIZE_M,
+                "titleFontSize": font_m,
                 "titleFontWeight": FONT_WEIGHT_SEMIBOLD,
                 "titleColor": TEXT,
             },
             # -- Concat / Facet spacing -------------------------------------
-            "concat": {"spacing": 20},
-            "facet": {"spacing": 20},
+            "concat": {"spacing": space["l"]},
+            "facet": {"spacing": space["l"]},
         }
     }
+
+
+def configure_size(
+    chart,
+    width: int,
+    height: int | None = None,
+    aspect_ratio: str | float = "3:2",
+):
+    """Apply size-appropriate configuration to a single chart.
+
+    This function applies responsive typography and spacing to an individual
+    chart without changing the global theme. Useful for per-chart sizing.
+
+    Parameters
+    ----------
+    chart
+        An Altair chart object.
+    width
+        The desired chart width in pixels.
+    height
+        The desired chart height in pixels. If not provided, calculated from
+        ``aspect_ratio``.
+    aspect_ratio
+        Aspect ratio for calculating height from width. Can be a named ratio
+        ('16:9', '4:3', '3:2', '1:1', '2:1', 'square', 'widescreen') or a
+        numeric ratio (width/height). Defaults to '3:2'.
+
+    Returns
+    -------
+    alt.Chart
+        The chart with size-appropriate configuration applied.
+
+    Examples
+    --------
+    >>> chart = alt.Chart(data).mark_bar().encode(...)
+    >>> chart = configure_size(chart, width=400, aspect_ratio='16:9')
+    """
+    if height is None:
+        _, height = calculate_dimensions(width, aspect_ratio)
+
+    size = _get_size_category(width)
+    typo = TYPOGRAPHY[size]
+    space = SPACING[size]
+
+    font_s = typo["S"]
+    font_m = typo["M"]
+    font_l = typo["L"]
+
+    return (
+        chart.properties(width=width, height=height)
+        .configure_title(
+            fontSize=font_l,
+            lineHeight=round(font_l * LINE_HEIGHT_SHORT),
+            offset=space["s"],
+            subtitleFontSize=font_m,
+            subtitleLineHeight=round(font_m * LINE_HEIGHT_SHORT),
+            subtitlePadding=space["s"],
+        )
+        .configure_axis(
+            labelFontSize=font_s,
+            labelPadding=space["xs"],
+            titleFontSize=font_s,
+            titlePadding=space["s"],
+        )
+        .configure_legend(
+            labelFontSize=font_s,
+            titleFontSize=font_s,
+            titlePadding=space["xs"],
+            padding=space["m"],
+            offset=space["xxs"],
+        )
+        .configure_header(
+            labelFontSize=font_s,
+            titleFontSize=font_m,
+        )
+    )
 
 
 # ===========================================================================
 # Theme registration
 # ===========================================================================
 
-alt.themes.register("wbg", wbg_theme)
+alt.themes.register("wbg", wbg_theme)  # Default (medium)
+alt.themes.register("wbg-small", lambda: wbg_theme(size="small"))
+alt.themes.register("wbg-medium", lambda: wbg_theme(size="medium"))
+alt.themes.register("wbg-large", lambda: wbg_theme(size="large"))
 
 
-def enable() -> None:
-    """Enable the WBG theme globally for all Altair charts."""
-    alt.themes.enable("wbg")
+def enable(size: SizeCategory = "medium") -> None:
+    """Enable the WBG theme globally for all Altair charts.
+
+    Parameters
+    ----------
+    size
+        Size category for typography and spacing: 'small' (<400px width),
+        'medium' (400-700px), or 'large' (>700px). Defaults to 'medium'.
+
+    Examples
+    --------
+    >>> import altair_theme_wbg as wbg
+    >>> wbg.enable()  # Use medium size (default)
+    >>> wbg.enable(size='large')  # Use large typography/spacing
+    """
+    theme_name = "wbg" if size == "medium" else f"wbg-{size}"
+    alt.themes.enable(theme_name)
