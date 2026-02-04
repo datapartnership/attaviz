@@ -274,6 +274,10 @@ def wbg_theme(
             "axisQuantitative": {
                 "tickCount": 5,
             },
+            "axisBand": {
+                "labelPadding": space["xs"],
+                "tickSize": 0,
+            },
             "axisTemporal": {
                 "grid": False,
             },
@@ -331,6 +335,21 @@ def wbg_theme(
             # -- Concat / Facet spacing -------------------------------------
             "concat": {"spacing": space["l"]},
             "facet": {"spacing": space["l"]},
+            # -- Selection styling ------------------------------------------
+            "selection": {
+                "point": {
+                    "on": "click",
+                    "clear": "dblclick",
+                },
+                "interval": {
+                    "mark": {
+                        "fill": colors.SELECTION_PRIMARY,
+                        "fillOpacity": 0.15,
+                        "stroke": colors.SELECTION_PRIMARY,
+                        "strokeWidth": 1,
+                    },
+                },
+            },
         }
     }
 
