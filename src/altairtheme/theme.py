@@ -176,7 +176,7 @@ def wbg_theme(
         "config": {
             # -- Background -------------------------------------------------
             "background": "white",
-            "padding": space["xl"],
+            "padding": space["m"],
             # -- Default mark properties ------------------------------------
             "mark": {
                 "tooltip": True,
@@ -230,13 +230,13 @@ def wbg_theme(
                 "lineHeight": round(font_l * LINE_HEIGHT_SHORT),
                 "color": colors.TEXT,
                 "anchor": "start",
-                "offset": space["s"],
+                "offset": space["xl"],
                 "subtitleFont": FONT,
                 "subtitleFontSize": font_m,
                 "subtitleFontWeight": FONT_WEIGHT_REGULAR,
                 "subtitleLineHeight": round(font_m * LINE_HEIGHT_SHORT),
                 "subtitleColor": colors.TEXT_SUBTLE,
-                "subtitlePadding": space["s"],
+                "subtitlePadding": space["xxs"],
             },
             # -- Axes -------------------------------------------------------
             "axis": {
@@ -249,7 +249,7 @@ def wbg_theme(
                 "labelFontSize": font_s,
                 "labelFontWeight": FONT_WEIGHT_REGULAR,
                 "labelColor": colors.TEXT_SUBTLE,
-                "labelPadding": space["xs"],
+                "labelPadding": space["xxs"],
                 "tickColor": colors.GREY_200,
                 "tickSize": 5,
                 "tickCount": 5,
@@ -287,12 +287,13 @@ def wbg_theme(
                 "titleFontSize": font_s,
                 "titleFontWeight": FONT_WEIGHT_SEMIBOLD,
                 "titleColor": colors.TEXT,
-                "titlePadding": space["xs"],
+                "titlePadding": space["xxs"],
                 "symbolSize": 196,  # 14x14 px dot
                 "symbolStrokeWidth": 0,
                 "padding": space["m"],
-                "offset": space["xxs"],
-                "orient": "right",
+                "offset": space["xl"],
+                "columnPadding": space["xl"],
+                "orient": "bottom",
                 "labelLimit": 200,
                 "titleLimit": 200,
             },
@@ -385,23 +386,24 @@ def configure_size(
         .configure_title(
             fontSize=font_l,
             lineHeight=round(font_l * LINE_HEIGHT_SHORT),
-            offset=space["s"],
+            offset=space["l"],
             subtitleFontSize=font_m,
             subtitleLineHeight=round(font_m * LINE_HEIGHT_SHORT),
-            subtitlePadding=space["s"],
+            subtitlePadding=space["xxs"],
         )
         .configure_axis(
             labelFontSize=font_s,
-            labelPadding=space["xs"],
+            labelPadding=space["xxs"],
             titleFontSize=font_s,
             titlePadding=space["s"],
         )
         .configure_legend(
             labelFontSize=font_s,
             titleFontSize=font_s,
-            titlePadding=space["xs"],
+            titlePadding=space["s"],
             padding=space["m"],
-            offset=space["xxs"],
+            offset=space["xl"],
+            orient="bottom",
         )
         .configure_header(
             labelFontSize=font_s,
