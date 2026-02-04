@@ -1,7 +1,7 @@
 # altair-theme-wbg
 
 An [Altair](https://altair-viz.github.io/) theme implementing the
-[World Bank Group Data Visualization Style Guide](https://wbg-vis-design.vercel.app/).
+[World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
 ## Installation
 
@@ -18,8 +18,8 @@ pip install altair-theme-wbg
 For local development:
 
 ```bash
-git clone <repo-url>
-cd altair-theme
+git clone https://github.com/farhanreynaldo/altairtheme.git
+cd altairtheme
 uv sync --dev
 ```
 
