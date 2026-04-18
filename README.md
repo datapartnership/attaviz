@@ -1,4 +1,4 @@
-# altair-theme-wbg
+# attaviz
 
 An [Altair](https://altair-viz.github.io/) theme implementing the
 [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
@@ -6,20 +6,20 @@ An [Altair](https://altair-viz.github.io/) theme implementing the
 ## Installation
 
 ```bash
-uv add altair-theme-wbg
+uv add attaviz
 ```
 
 Or with pip:
 
 ```bash
-pip install altair-theme-wbg
+pip install attaviz
 ```
 
 For local development:
 
 ```bash
-git clone https://github.com/farhanreynaldo/altairtheme.git
-cd altairtheme
+git clone https://github.com/farhanreynaldo/attaviz.git
+cd attaviz
 uv sync --dev
 ```
 
@@ -27,10 +27,10 @@ uv sync --dev
 
 ```python
 import altair as alt
-import altair_theme_wbg
+import attaviz
 
 # Enable the WBG theme globally
-altair_theme_wbg.enable()
+attaviz.enable()
 
 # All charts now use the WBG theme automatically
 chart = alt.Chart(data).mark_bar().encode(
@@ -67,15 +67,15 @@ The package exports all WBG color palettes as Python lists and dictionaries.
 ### Categorical
 
 ```python
-import altair_theme_wbg
+import attaviz
 
 # Default 9-color categorical palette (used automatically)
-altair_theme_wbg.CATEGORICAL
+attaviz.CATEGORICAL
 # ['#34A7F2', '#FF9800', '#664AB6', '#4EC2C0', '#F3578E',
 #  '#081079', '#0C7C68', '#AA0000', '#DDDA21']
 
 # Accessible text variants (higher contrast on white backgrounds)
-altair_theme_wbg.CATEGORICAL_TEXT
+attaviz.CATEGORICAL_TEXT
 ```
 
 ### Sequential
@@ -83,13 +83,13 @@ altair_theme_wbg.CATEGORICAL_TEXT
 Six sequential palettes are available:
 
 ```python
-altair_theme_wbg.SEQ_BLUE          # monochrome blue (default)
-altair_theme_wbg.SEQ_GREEN         # monochrome green
-altair_theme_wbg.SEQ_PURPLE        # monochrome purple
-altair_theme_wbg.SEQ_YELLOW        # monochrome yellow
-altair_theme_wbg.SEQ_RED           # monochrome red
-altair_theme_wbg.SEQ_BAD_TO_GOOD   # warm → cool (higher = better)
-altair_theme_wbg.SEQ_GOOD_TO_BAD   # cool → warm (higher = worse)
+attaviz.SEQ_BLUE          # monochrome blue (default)
+attaviz.SEQ_GREEN         # monochrome green
+attaviz.SEQ_PURPLE        # monochrome purple
+attaviz.SEQ_YELLOW        # monochrome yellow
+attaviz.SEQ_RED           # monochrome red
+attaviz.SEQ_BAD_TO_GOOD   # warm → cool (higher = better)
+attaviz.SEQ_GOOD_TO_BAD   # cool → warm (higher = worse)
 ```
 
 Use them with `alt.Scale(range=...)`:
@@ -98,7 +98,7 @@ Use them with `alt.Scale(range=...)`:
 alt.Chart(data).mark_rect().encode(
     color=alt.Color(
         "value:Q",
-        scale=alt.Scale(range=altair_theme_wbg.SEQ_GREEN),
+        scale=alt.Scale(range=attaviz.SEQ_GREEN),
     ),
 )
 ```
@@ -108,9 +108,9 @@ alt.Chart(data).mark_rect().encode(
 Three diverging palettes with a neutral midpoint (`#EFEFEF`):
 
 ```python
-altair_theme_wbg.DIV_DEFAULT       # red ↔ blue (good/bad connotation)
-altair_theme_wbg.DIV_NEUTRAL       # teal ↔ purple (no connotation)
-altair_theme_wbg.DIV_ALTERNATIVE   # blue ↔ red (stronger negative emphasis)
+attaviz.DIV_DEFAULT       # red ↔ blue (good/bad connotation)
+attaviz.DIV_NEUTRAL       # teal ↔ purple (no connotation)
+attaviz.DIV_ALTERNATIVE   # blue ↔ red (stronger negative emphasis)
 ```
 
 Use with `domainMid=0` for symmetric diverging scales:
@@ -120,7 +120,7 @@ alt.Chart(data).mark_bar().encode(
     color=alt.Color(
         "change:Q",
         scale=alt.Scale(
-            range=altair_theme_wbg.DIV_DEFAULT,
+            range=attaviz.DIV_DEFAULT,
             domainMid=0,
         ),
     ),
@@ -131,24 +131,24 @@ alt.Chart(data).mark_bar().encode(
 
 ```python
 # Regions (dict: region code → hex)
-altair_theme_wbg.REGIONS           # {'NAC': '#34A7F2', 'SSF': '#FF9800', ...}
-altair_theme_wbg.REGIONS_TEXT      # accessible text variants
-altair_theme_wbg.REGIONS_SECONDARY # 4-shade series per region
+attaviz.REGIONS           # {'NAC': '#34A7F2', 'SSF': '#FF9800', ...}
+attaviz.REGIONS_TEXT      # accessible text variants
+attaviz.REGIONS_SECONDARY # 4-shade series per region
 
 # Income groups
-altair_theme_wbg.INCOME            # {'HIC': '#016B6C', 'UMC': '#73AF48', ...}
-altair_theme_wbg.INCOME_LIST       # as ordered list
+attaviz.INCOME            # {'HIC': '#016B6C', 'UMC': '#73AF48', ...}
+attaviz.INCOME_LIST       # as ordered list
 
 # Demographics
-altair_theme_wbg.GENDER            # {'female': '#FF9800', 'male': '#664AB6', ...}
-altair_theme_wbg.URBANIZATION      # {'urban': '#6D88D1', 'rural': '#54AE89'}
-altair_theme_wbg.AGE               # 5 colors, youngest → oldest
+attaviz.GENDER            # {'female': '#FF9800', 'male': '#664AB6', ...}
+attaviz.URBANIZATION      # {'urban': '#6D88D1', 'rural': '#54AE89'}
+attaviz.AGE               # 5 colors, youngest → oldest
 
 # Functional
-altair_theme_wbg.REFERENCE         # '#8A969F' — reference line color
-altair_theme_wbg.NO_DATA           # '#CED4DE' — missing data fill
-altair_theme_wbg.TOTAL             # '#163C6C' — total/aggregate color
-altair_theme_wbg.SELECTION_PRIMARY # '#0071BC' — interactive selection
+attaviz.REFERENCE         # '#8A969F' — reference line color
+attaviz.NO_DATA           # '#CED4DE' — missing data fill
+attaviz.TOTAL             # '#163C6C' — total/aggregate color
+attaviz.SELECTION_PRIMARY # '#0071BC' — interactive selection
 ```
 
 ### Using Semantic Palettes with Explicit Scales
@@ -156,7 +156,7 @@ altair_theme_wbg.SELECTION_PRIMARY # '#0071BC' — interactive selection
 Map region codes to their official WBG colors:
 
 ```python
-regions = altair_theme_wbg.REGIONS
+regions = attaviz.REGIONS
 
 alt.Chart(data).mark_bar().encode(
     color=alt.Color(
@@ -174,7 +174,7 @@ alt.Chart(data).mark_bar().encode(
 The WBG institutional pillar colors:
 
 ```python
-altair_theme_wbg.PILLARS
+attaviz.PILLARS
 # {'people': '#F7B841', 'planet': '#07AB50', 'prosperity': '#872C8F',
 #  'infrastructure': '#91302F', 'digital': '#5D6472', 'corporate': '#004972'}
 ```
@@ -184,11 +184,11 @@ altair_theme_wbg.PILLARS
 Five greys for chart elements:
 
 ```python
-altair_theme_wbg.GREY_500  # '#111111' — primary text
-altair_theme_wbg.GREY_400  # '#666666' — secondary text
-altair_theme_wbg.GREY_300  # '#8A969F' — reference lines
-altair_theme_wbg.GREY_200  # '#CED4DE' — grid lines
-altair_theme_wbg.GREY_100  # '#EBEEF4' — backgrounds
+attaviz.GREY_500  # '#111111' — primary text
+attaviz.GREY_400  # '#666666' — secondary text
+attaviz.GREY_300  # '#8A969F' — reference lines
+attaviz.GREY_200  # '#CED4DE' — grid lines
+attaviz.GREY_100  # '#EBEEF4' — backgrounds
 ```
 
 ## Examples
