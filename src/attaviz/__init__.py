@@ -3,21 +3,21 @@
 Usage::
 
     import altair as alt
-    import altair_theme_wbg as wbg
+    import attaviz
 
-    wbg.enable()
+    attaviz.enable()
 
     # Now all charts use the WBG theme
     chart = alt.Chart(...).mark_bar().encode(...)
 
     # Use size-specific themes
-    wbg.enable(size='large')
+    attaviz.enable(size='large')
 
     # Per-chart sizing
-    chart = wbg.configure_size(chart, width=400, aspect_ratio='16:9')
+    chart = attaviz.configure_size(chart, width=400, aspect_ratio='16:9')
 
     # Calculate dimensions
-    w, h = wbg.calculate_dimensions(800, '16:9')  # (800, 450)
+    w, h = attaviz.calculate_dimensions(800, '16:9')  # (800, 450)
 """
 
 from __future__ import annotations
@@ -25,7 +25,6 @@ from __future__ import annotations
 from typing import Literal
 
 import altair as alt
-import altairtheme
 
 from .formatting import (  # noqa: F401
     d3_date_format,
@@ -164,9 +163,9 @@ def enable(size: Literal["small", "medium", "large"] = "medium") -> None:
 
     Examples
     --------
-    >>> import altair_theme_wbg as wbg
-    >>> wbg.enable()  # Use medium size (default)
-    >>> wbg.enable(size='large')  # Use large typography/spacing
+    >>> import attaviz
+    >>> attaviz.enable()  # Use medium size (default)
+    >>> attaviz.enable(size='large')  # Use large typography/spacing
     """
     theme_name = "wbg" if size == "medium" else f"wbg-{size}"
     alt.themes.enable(theme_name)
@@ -204,23 +203,25 @@ def add_caption(
     Examples
     --------
     >>> chart = alt.Chart(data).mark_bar().encode(...)
-    >>> chart_with_caption = wbg.add_caption(
+    >>> chart_with_caption = attaviz.add_caption(
     ...     chart,
     ...     "Source: World Bank Development Indicators, 2023"
     ... )
-    >>> chart_with_caption = wbg.add_caption(
+    >>> chart_with_caption = attaviz.add_caption(
     ...     chart,
     ...     "Note: Data excludes 2020 due to COVID-19.",
     ...     align="right"
     ... )
     """
-    # Detect width from chart
+    # Detect width from chart. Altair uses an Undefined sentinel (not None)
+    # for unset properties, so check for a concrete int instead.
     width = getattr(chart, "width", None)
-    if width is None:
-        # Try to get from properties
+    if not isinstance(width, int):
         if hasattr(chart, "to_dict"):
             spec = chart.to_dict()
             width = spec.get("width", DEFAULT_DIMENSIONS["medium"][0])
+            if not isinstance(width, int):
+                width = DEFAULT_DIMENSIONS["medium"][0]
         else:
             width = DEFAULT_DIMENSIONS["medium"][0]
 
@@ -279,7 +280,7 @@ def add_hover(
 
     Examples
     --------
-    >>> chart = wbg.add_hover(
+    >>> chart = attaviz.add_hover(
     ...     alt.Chart(data).mark_bar().encode(...)
     ... )
     >>> # Bars will highlight on hover
@@ -309,7 +310,7 @@ def point_selection(name: str = "select", **kwargs):
 
     Examples
     --------
-    >>> select = wbg.point_selection()
+    >>> select = attaviz.point_selection()
     >>> chart = alt.Chart(data).mark_point().encode(...).add_params(select)
     """
     return alt.selection_point(name=name, **kwargs)
@@ -333,7 +334,7 @@ def interval_selection(name: str = "brush"):
 
     Examples
     --------
-    >>> brush = wbg.interval_selection()
+    >>> brush = attaviz.interval_selection()
     >>> chart = alt.Chart(data).mark_point().encode(...).add_params(brush)
     """
     return alt.selection_interval(

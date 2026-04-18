@@ -243,8 +243,8 @@ def format_date(
         return value.strftime("%Y")
 
     if style == "fiscal_year":
-        # WBG fiscal year runs July-June, so Jan 2023 is FY23
-        fy = value.year if value.month >= 7 else value.year
+        # WBG fiscal year runs July-June. July 2023 is FY24; Jan 2023 is FY23.
+        fy = value.year + 1 if value.month >= 7 else value.year
         if short:
             return f"FY{fy % 100:02d}"
         return f"FY{fy}"
@@ -281,19 +281,23 @@ def d3_date_format(
 
     Notes
     -----
-    The "quarter" and "fiscal_year" styles cannot be represented as simple
-    D3 format strings and require custom Vega expressions. These return
-    approximate formats that may need manual adjustment.
+    The "quarter" and "fiscal_year" styles cannot be represented as D3 time
+    format strings. For those, compute the formatted value in Python via
+    ``format_date`` and pass the resulting string to Altair, or use a Vega
+    expression in the axis encoding.
     """
     formats = {
         "day": ("%m/%d/%Y", "%B %d, %Y"),
         "month": ("%b", "%B"),
         "month_year": ("%b-%y", "%B %Y"),
-        "quarter": ("Q%q-%y", "Q%q %Y"),  # Note: %q requires Vega expression
         "year": ("%y", "%Y"),
-        "fiscal_year": ("FY%y", "FY%Y"),  # Approximate; true FY needs expression
     }
 
+    if style in ("quarter", "fiscal_year"):
+        raise ValueError(
+            f"Style '{style}' has no D3 time-format equivalent. "
+            "Use format_date() to preformat values, or supply a Vega expression."
+        )
     if style not in formats:
         raise ValueError(f"Unknown date style: {style}")
 
