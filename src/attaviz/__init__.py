@@ -31,6 +31,7 @@ from .formatting import (  # noqa: F401
     d3_number_format,
     format_date,
     format_number,
+    vega_scale_labelExpr,
 )
 from .colors import (  # noqa: F401
     AGE,
@@ -97,6 +98,7 @@ __all__ = [
     "format_date",
     "d3_number_format",
     "d3_date_format",
+    "vega_scale_labelExpr",
     # Caption and interaction helpers
     "add_caption",
     "add_hover",

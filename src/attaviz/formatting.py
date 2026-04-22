@@ -167,6 +167,59 @@ def d3_number_format(
     return f"{prefix},.{decimals}f"
 
 
+def vega_scale_labelExpr(
+    *,
+    currency: bool = False,
+    unit: str | None = None,
+    decimals: int = 1,
+) -> str:
+    """Return a Vega expression string for auto-scaled Altair axis labels.
+
+    Unlike ``d3_number_format``, this produces a *Vega expression* (for use
+    with ``alt.Axis(labelExpr=...)``) that applies WBG-style K/M/B suffixes
+    per-tick in the browser — no data pre-scaling required.
+
+    Parameters
+    ----------
+    currency
+        If True, prefix every label with "$".
+    unit
+        If provided and the unit is a technical one (W, ton, bit, byte, ...),
+        the billions suffix becomes "G" instead of "B".
+    decimals
+        Decimal places for the scaled value. Defaults to 1 (WBG default for
+        the 1-100 range, which covers most scaled ticks).
+
+    Returns
+    -------
+    str
+        A Vega expression string suitable for ``alt.Axis(labelExpr=...)``.
+
+    Examples
+    --------
+    >>> import altair as alt  # doctest: +SKIP
+    >>> axis = alt.Axis(labelExpr=vega_scale_labelExpr(currency=True))
+    """
+    prefix = "$" if currency else ""
+
+    # Swap "B" -> "G" for technical units, matching format_number's behavior.
+    billions_suffix = "B"
+    if unit and unit.lower().rstrip("s") in {u.lower().rstrip("s") for u in _G_UNITS}:
+        billions_suffix = "G"
+
+    spec = f"',.{decimals}f'"
+    int_spec = "',.0f'"
+    v = "datum.value"
+    p = repr(prefix)
+
+    return (
+        f"abs({v}) >= 1e9 ? {p} + format({v}/1e9, {spec}) + '{billions_suffix}' : "
+        f"abs({v}) >= 1e6 ? {p} + format({v}/1e6, {spec}) + 'M' : "
+        f"abs({v}) >= 1e3 ? {p} + format({v}/1e3, {spec}) + 'K' : "
+        f"{p} + format({v}, {int_spec})"
+    )
+
+
 def format_date(
     value: Union[date, datetime, str],
     style: DateStyle = "month_year",

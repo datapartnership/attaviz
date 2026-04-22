@@ -44,7 +44,7 @@ typography and spacing proportionally.
 | `medium` | 400–700px | default |
 | `large` | over 700px | expanded |
 
-Register-time names: `wbg` (== `wbg-medium`), `wbg-small`, `wbg-large`.
+Register-time names: `wbg` (the default medium size), `wbg-small`, `wbg-large`.
 
 ## Per-chart sizing
 
@@ -64,6 +64,41 @@ w, h = attaviz.calculate_dimensions(800, "16:9")  # → (800, 450)
 
 Useful when you need the height up front (e.g. for a faceted chart whose
 rows must add up to a known total).
+
+## Size context managers
+
+To override the active theme for a single chart (or a block of charts)
+without changing the global setting, use `alt.theme.enable` as a context
+manager against the registered variants:
+
+```python
+with alt.theme.enable("wbg-small"):
+    small_chart = make_chart().properties(width=300, height=150)
+
+with alt.theme.enable("wbg-large"):
+    large_chart = make_chart().properties(width=600, height=300)
+```
+
+When the block exits, the previously active theme is restored.
+
+## Custom theme registration
+
+`wbg_theme()` returns a raw theme dict keyed by arbitrary width and aspect
+ratio, so you can register variants tailored to a specific output medium:
+
+```python
+import altair as alt
+import attaviz
+
+alt.themes.register(
+    "wbg-widescreen",
+    lambda: attaviz.wbg_theme(width=1200, aspect_ratio="16:9"),
+)
+alt.themes.enable("wbg-widescreen")
+```
+
+Typography and spacing scale off the supplied `width` using the size
+breakpoints above (so a 1200px theme inherits `large` tokens).
 
 ## Sizing constants
 
