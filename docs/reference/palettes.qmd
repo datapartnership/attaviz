@@ -1,0 +1,224 @@
+---
+title: "Color palettes"
+---
+
+```{python}
+#| echo: false
+import altair as alt
+import pandas as pd
+import attaviz
+attaviz.enable()
+
+def swatch(colors, labels=None, height=40):
+    """Render a horizontal strip of color swatches."""
+    if isinstance(colors, dict):
+        labels = list(colors.keys())
+        values = list(colors.values())
+    else:
+        values = list(colors)
+        labels = labels or [f"{i}" for i in range(len(values))]
+    df = pd.DataFrame({"i": list(range(len(values))), "label": labels, "hex": values})
+    return (
+        alt.Chart(df)
+        .mark_rect()
+        .encode(
+            x=alt.X("i:O", axis=None),
+            color=alt.Color(
+                "label:N",
+                scale=alt.Scale(domain=labels, range=values),
+                legend=None,
+            ),
+            tooltip=["label", "hex"],
+        )
+        .properties(width=alt.Step(60), height=height)
+    )
+```
+
+## Categorical
+
+The default 9-color palette used automatically when the theme is enabled.
+
+```{python}
+#| echo: false
+swatch(attaviz.CATEGORICAL)
+```
+
+An accessible text-contrast variant is available when categorical colors are
+applied to text rather than marks:
+
+```{python}
+#| echo: false
+swatch(attaviz.CATEGORICAL_TEXT)
+```
+
+```python
+attaviz.CATEGORICAL       # 9-color palette (default)
+attaviz.CATEGORICAL_TEXT  # high-contrast text variant
+attaviz.BINARY            # two-color pair
+```
+
+## Sequential
+
+Six monochrome ramps. Use with `alt.Scale(range=...)`:
+
+```python
+alt.Chart(data).mark_rect().encode(
+    color=alt.Color("value:Q", scale=alt.Scale(range=attaviz.SEQ_GREEN))
+)
+```
+
+```{python}
+#| echo: false
+alt.vconcat(
+    swatch(attaviz.SEQ_BLUE,   labels=[f"blue-{i}" for i in range(len(attaviz.SEQ_BLUE))]).properties(title="SEQ_BLUE"),
+    swatch(attaviz.SEQ_GREEN,  labels=[f"green-{i}" for i in range(len(attaviz.SEQ_GREEN))]).properties(title="SEQ_GREEN"),
+    swatch(attaviz.SEQ_PURPLE, labels=[f"purple-{i}" for i in range(len(attaviz.SEQ_PURPLE))]).properties(title="SEQ_PURPLE"),
+    swatch(attaviz.SEQ_YELLOW, labels=[f"yellow-{i}" for i in range(len(attaviz.SEQ_YELLOW))]).properties(title="SEQ_YELLOW"),
+    swatch(attaviz.SEQ_RED,    labels=[f"red-{i}" for i in range(len(attaviz.SEQ_RED))]).properties(title="SEQ_RED"),
+)
+```
+
+Two semantic sequential ramps convey "good → bad" direction:
+
+```{python}
+#| echo: false
+alt.vconcat(
+    swatch(attaviz.SEQ_BAD_TO_GOOD, labels=[f"{i}" for i in range(len(attaviz.SEQ_BAD_TO_GOOD))]).properties(title="SEQ_BAD_TO_GOOD (higher = better)"),
+    swatch(attaviz.SEQ_GOOD_TO_BAD, labels=[f"{i}" for i in range(len(attaviz.SEQ_GOOD_TO_BAD))]).properties(title="SEQ_GOOD_TO_BAD (higher = worse)"),
+)
+```
+
+## Diverging
+
+Three diverging palettes with a neutral midpoint (`#EFEFEF`). Pair with
+`domainMid=0` for symmetric scales centered at zero:
+
+```python
+alt.Chart(data).mark_bar().encode(
+    color=alt.Color(
+        "change:Q",
+        scale=alt.Scale(range=attaviz.DIV_DEFAULT, domainMid=0),
+    )
+)
+```
+
+```{python}
+#| echo: false
+alt.vconcat(
+    swatch(attaviz.DIV_DEFAULT,     labels=[f"{i}" for i in range(len(attaviz.DIV_DEFAULT))]).properties(title="DIV_DEFAULT (red ↔ blue)"),
+    swatch(attaviz.DIV_NEUTRAL,     labels=[f"{i}" for i in range(len(attaviz.DIV_NEUTRAL))]).properties(title="DIV_NEUTRAL (teal ↔ purple)"),
+    swatch(attaviz.DIV_ALTERNATIVE, labels=[f"{i}" for i in range(len(attaviz.DIV_ALTERNATIVE))]).properties(title="DIV_ALTERNATIVE (blue ↔ red)"),
+)
+```
+
+## Semantic palettes
+
+### Regions
+
+```{python}
+#| echo: false
+swatch(attaviz.REGIONS)
+```
+
+```python
+attaviz.REGIONS            # code → hex (e.g. "NAC", "SSF", ...)
+attaviz.REGIONS_TEXT       # accessible text variants
+attaviz.REGIONS_SECONDARY  # 4-shade series per region
+```
+
+Use in an explicit scale:
+
+```python
+regions = attaviz.REGIONS
+alt.Chart(data).mark_bar().encode(
+    color=alt.Color(
+        "region:N",
+        scale=alt.Scale(domain=list(regions), range=list(regions.values())),
+    )
+)
+```
+
+### Income groups
+
+```{python}
+#| echo: false
+swatch(attaviz.INCOME)
+```
+
+```python
+attaviz.INCOME       # dict: "HIC", "UMC", "LMC", "LIC" → hex
+attaviz.INCOME_LIST  # ordered list (HIC → LIC)
+```
+
+### Demographics
+
+```{python}
+#| echo: false
+swatch(attaviz.GENDER)
+```
+
+```{python}
+#| echo: false
+swatch(attaviz.URBANIZATION)
+```
+
+```{python}
+#| echo: false
+swatch(attaviz.AGE, labels=[f"age-{i}" for i in range(len(attaviz.AGE))])
+```
+
+```python
+attaviz.GENDER        # dict: "female", "male", ...
+attaviz.URBANIZATION  # dict: "urban", "rural"
+attaviz.AGE           # list, youngest → oldest (5 shades)
+```
+
+## Pillars
+
+Institutional pillar colors.
+
+```{python}
+#| echo: false
+swatch(attaviz.PILLARS)
+```
+
+```python
+attaviz.PILLARS
+# {'people': '#F7B841', 'planet': '#07AB50', 'prosperity': '#872C8F',
+#  'infrastructure': '#91302F', 'digital': '#5D6472', 'corporate': '#004972'}
+```
+
+## Grey scale
+
+Five greys used across the theme.
+
+```{python}
+#| echo: false
+swatch({
+    "GREY_500": attaviz.GREY_500,
+    "GREY_400": attaviz.GREY_400,
+    "GREY_300": attaviz.GREY_300,
+    "GREY_200": attaviz.GREY_200,
+    "GREY_100": attaviz.GREY_100,
+})
+```
+
+| Constant | Hex | Typical use |
+|---|---|---|
+| `GREY_500` | `#111111` | primary text |
+| `GREY_400` | `#666666` | secondary text |
+| `GREY_300` | `#8A969F` | reference lines |
+| `GREY_200` | `#CED4DE` | grid lines |
+| `GREY_100` | `#EBEEF4` | backgrounds |
+
+## Functional
+
+```python
+attaviz.REFERENCE            # "#8A969F" — reference line color
+attaviz.NO_DATA              # "#CED4DE" — missing-data fill
+attaviz.TOTAL                # "#163C6C" — total/aggregate color
+attaviz.SELECTION_PRIMARY    # "#0071BC" — active selection
+attaviz.SELECTION_SECONDARY  # companion selection color
+attaviz.TEXT                 # primary text color
+attaviz.TEXT_SUBTLE          # subtle text color (captions)
+```

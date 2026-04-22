@@ -1,0 +1,40 @@
+---
+title: "Installation"
+---
+
+`attaviz` is not yet published to PyPI. Install it directly from GitHub.
+
+## With uv
+
+```bash
+uv add "attaviz @ git+https://github.com/farhanreynaldo/attaviz.git"
+```
+
+## With pip
+
+```bash
+pip install "git+https://github.com/farhanreynaldo/attaviz.git"
+```
+
+The quoted form prevents the shell from expanding the `@` and `+` characters.
+
+## Requirements
+
+- Python 3.9 or newer
+- Altair 5 or newer
+
+Dependencies (`altair`, `pyarrow`, `vegafusion`, `vl-convert-python`) install
+automatically.
+
+## Local development
+
+Clone and install the dev environment:
+
+```bash
+git clone https://github.com/farhanreynaldo/attaviz.git
+cd attaviz
+uv sync --dev
+```
+
+The `dev` dependency group adds Jupyter, pandas, `vega-datasets`, pytest, and
+ruff so you can run the tests and the gallery notebook locally.

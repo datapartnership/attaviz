@@ -1,0 +1,42 @@
+---
+title: "Quick start"
+---
+
+Enable the WBG theme once, then build Altair charts as usual.
+
+```{python}
+import altair as alt
+import attaviz
+from vega_datasets import data
+
+attaviz.enable()
+
+source = data.cars()
+
+alt.Chart(source).mark_point().encode(
+    x="Horsepower:Q",
+    y="Miles_per_Gallon:Q",
+    color="Origin:N",
+)
+```
+
+## Size variants
+
+Three typography/spacing presets are available. Pick the one that matches
+the intended display width.
+
+```python
+attaviz.enable(size="small")   # charts under ~400px wide
+attaviz.enable(size="medium")  # 400–700px (default)
+attaviz.enable(size="large")   # wider than 700px
+```
+
+## Per-chart sizing
+
+To size a single chart without switching the global theme:
+
+```python
+chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
+```
+
+See the [Gallery](../gallery.ipynb) for a full tour of chart types.

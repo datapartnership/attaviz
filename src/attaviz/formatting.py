@@ -72,13 +72,11 @@ def format_number(
     if value is None or (isinstance(value, float) and math.isnan(value)):
         return "N/A"
 
-    # Handle percentage
     if percent:
         value = value * 100
 
     abs_value = abs(value)
 
-    # Determine scale
     scale_factor = 1
     scale_suffix = ""
 
@@ -87,7 +85,6 @@ def format_number(
             if abs_value >= threshold:
                 scale_factor = threshold
                 scale_suffix = suffix
-                # Use G instead of B for technical units
                 if (
                     suffix == "B"
                     and unit
@@ -103,7 +100,6 @@ def format_number(
 
     scaled_value = value / scale_factor
 
-    # Determine decimal places
     if decimals == "auto":
         abs_scaled = abs(scaled_value)
         if abs_scaled < 1:
@@ -115,10 +111,8 @@ def format_number(
     else:
         dec = decimals
 
-    # Format the number
     formatted = f"{scaled_value:,.{dec}f}"
 
-    # Build result
     prefix = "$" if currency else ""
     suffix = "%" if percent else scale_suffix
 
@@ -210,7 +204,6 @@ def format_date(
     >>> format_date(date(2023, 3, 1), style="quarter")
     'Q1-23'
     """
-    # Parse string dates
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if isinstance(value, datetime):

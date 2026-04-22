@@ -1,0 +1,44 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "index.qmd"
+    - "getting-started/*.qmd"
+    - "reference/*.qmd"
+    - "about.qmd"
+    - "gallery.ipynb"
+    - "!superpowers/**"
+
+website:
+  title: "attaviz"
+  description: "World Bank Group data visualization theme for Altair"
+  repo-url: https://github.com/farhanreynaldo/attaviz
+  repo-actions: [edit, issue]
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Getting started"
+        menu:
+          - getting-started/installation.qmd
+          - getting-started/quickstart.qmd
+      - text: "Gallery"
+        href: gallery.ipynb
+      - text: "Reference"
+        menu:
+          - reference/theme.qmd
+          - reference/palettes.qmd
+          - reference/formatting.qmd
+    right:
+      - icon: github
+        href: https://github.com/farhanreynaldo/attaviz
+
+format:
+  html:
+    theme: Yeti
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+
+execute:
+  freeze: auto
