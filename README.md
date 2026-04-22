@@ -1,8 +1,6 @@
 # attaviz
 
-An [Altair](https://altair-viz.github.io/) theme implementing the
-[World Bank Group Data Visualization Style
-Guide](https://worldbank.github.io/data-visualization-style-guide/).
+An [Altair](https://altair-viz.github.io/) theme implementing the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
 **Documentation:** <https://farhanreynaldo.github.io/attaviz/>
 
@@ -25,9 +23,4 @@ attaviz.enable()  # every chart now uses the WBG theme
 alt.Chart(data).mark_bar().encode(x="category:N", y="value:Q")
 ```
 
-See the [documentation site](https://farhanreynaldo.github.io/attaviz/)
-for the full gallery and reference.
-
-## License
-
-MIT.
+See the [documentation site](https://farhanreynaldo.github.io/attaviz/) for the full gallery and reference.

@@ -3,9 +3,7 @@ title: "attaviz"
 subtitle: "World Bank Group data visualization theme for Altair"
 ---
 
-`attaviz` turns Altair into a World Bank Group chart factory. Enable the
-theme once, and every chart picks up WBG typography, colors, grids, and
-mark styling automatically.
+An [Altair](https://altair-viz.github.io/) theme implementing the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
 ```python
 import altair as alt
@@ -22,17 +20,12 @@ chart = alt.Chart(data).mark_bar().encode(
 
 ## Start here
 
-- **[Install](getting-started/installation.qmd)** — from GitHub via `uv` or
-  `pip`.
-- **[Quick start](getting-started/quickstart.qmd)** — a live four-line
-  example.
-- **[Gallery](gallery.ipynb)** — eleven chart types rendered with the theme.
+- **[Install](getting-started/installation.qmd)**
+- **[Quick start](getting-started/quickstart.qmd)**
+- **[Gallery](gallery.ipynb)**
 
 ## Reference
 
-- **[Theme](reference/theme.qmd)** — what the theme applies, size variants,
-  and per-chart sizing.
-- **[Color palettes](reference/palettes.qmd)** — categorical, sequential,
-  diverging, semantic, pillars, greys.
-- **[Formatting & helpers](reference/formatting.qmd)** — number/date
-  formatting, captions, hover, selections.
+- **[Theme](reference/theme.qmd)**: what the theme applies, size variants, and per-chart sizing.
+- **[Color palettes](reference/palettes.qmd)**: categorical, sequential, diverging, semantic, pillars, greys.
+- **[Formatting & helpers](reference/formatting.qmd)**: number/date formatting, captions, hover, selections.
