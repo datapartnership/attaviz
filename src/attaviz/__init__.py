@@ -178,7 +178,7 @@ def add_caption(
     chart,
     text: str,
     *,
-    align: Literal["left", "center", "right"] = "right",
+    align: Literal["left", "center", "right"] = "left",
 ):
     """Add a styled caption below a chart.
 
@@ -191,9 +191,12 @@ def add_caption(
         An Altair chart object.
     text
         The caption text. Include any prefix like "Source: " or "Note: "
-        in the string itself.
+        in the string itself. Use ``\\n`` to split across lines.
     align
-        Text alignment: "left", "center", or "right". Defaults to "left".
+        Text alignment: "left", "center", or "right". Defaults to "left",
+        which matches the WBG spec (notes/sources anchor to the same
+        container edge as the chart title). "center" and "right" are
+        provided for flexibility but are off-spec.
 
     Returns
     -------
@@ -232,22 +235,23 @@ def add_caption(
     font_s = typo["S"]
     line_height = round(font_s * LINE_HEIGHT_LONG)
 
-    caption_chart = (
-        alt.Chart({"values": [{}]})
-        .mark_text(
-            align=align,
-            baseline="top",
-            font=FONT,
-            fontSize=font_s,
-            fontWeight=400,
-            color=TEXT_SUBTLE,
-            lineHeight=line_height,
-        )
-        .encode(text=alt.value(text))
-        .properties(width=width, height=font_s * 2)
+    anchor = {"left": "start", "center": "middle", "right": "end"}[align]
+    # Split on newlines so Vega-Lite renders a multi-line title.
+    title_text = text.split("\n") if "\n" in text else text
+
+    caption = alt.TitleParams(
+        text=title_text,
+        orient="bottom",
+        anchor=anchor,
+        font=FONT,
+        fontSize=font_s,
+        fontWeight=400,
+        color=TEXT_SUBTLE,
+        lineHeight=line_height,
+        offset=space["xl"],
     )
 
-    return alt.vconcat(chart, caption_chart, spacing=space["m"])
+    return alt.vconcat(chart).properties(title=caption)
 
 
 # ---------------------------------------------------------------------------
