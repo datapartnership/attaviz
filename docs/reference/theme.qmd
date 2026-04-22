@@ -1,0 +1,76 @@
+---
+title: "Theme"
+---
+
+## Enabling the theme
+
+```python
+import attaviz
+attaviz.enable()                  # medium size (default)
+attaviz.enable(size="small")      # charts under ~400px wide
+attaviz.enable(size="large")      # charts wider than ~700px
+```
+
+`enable()` registers and activates a theme variant globally. Every subsequent
+Altair chart in the session picks up WBG typography, colors, grids, and mark
+styling.
+
+## What the theme applies
+
+| Element | WBG specification |
+|---|---|
+| Font | Open Sans, sans-serif |
+| Title | 18px, bold, `#111111` |
+| Subtitle | 15px, regular, `#666666` |
+| Axis labels | 13px, semibold, `#111111` |
+| Tick labels | 13px, regular, `#666666` |
+| Grid lines | `#CED4DE`, 1px, dashed (4 2) |
+| Legend | 14×14px symbol dots, semibold labels |
+| Categorical colors | 9-color WBG palette |
+| Sequential colors | WBG blue ramp (default) |
+| Diverging colors | WBG default diverging scale |
+| Line marks | 4px stroke, round caps/joins |
+| Point marks | 1px white stroke outline |
+| Geo shapes | 0.3px grey stroke, round joins |
+
+The values above are the `medium` defaults. `small` and `large` scale
+typography and spacing proportionally.
+
+## Size system
+
+| Size | Typical width | Typography / spacing |
+|---|---|---|
+| `small` | under 400px | compact |
+| `medium` | 400–700px | default |
+| `large` | over 700px | expanded |
+
+Register-time names: `wbg` (== `wbg-medium`), `wbg-small`, `wbg-large`.
+
+## Per-chart sizing
+
+```python
+chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
+```
+
+- `width` — target pixel width; the size variant is inferred automatically.
+- `aspect_ratio` — one of `"1:1"`, `"4:3"`, `"16:9"`, `"21:9"`, or a
+  `(w, h)` tuple.
+
+## Calculating dimensions
+
+```python
+w, h = attaviz.calculate_dimensions(800, "16:9")  # → (800, 450)
+```
+
+Useful when you need the height up front (e.g. for a faceted chart whose
+rows must add up to a known total).
+
+## Sizing constants
+
+For custom theming or introspection, these constants are re-exported:
+
+- `attaviz.SIZE_BREAKPOINTS` — `{"small": 400, "medium": 700}`
+- `attaviz.TYPOGRAPHY` — per-size font-size dicts
+- `attaviz.SPACING` — per-size spacing tokens (`xs`, `s`, `m`, `l`, `xl`)
+- `attaviz.ASPECT_RATIOS` — named ratio lookup
+- `attaviz.DEFAULT_DIMENSIONS` — default `(w, h)` per size

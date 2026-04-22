@@ -216,8 +216,7 @@ def add_caption(
     ...     align="right"
     ... )
     """
-    # Detect width from chart. Altair uses an Undefined sentinel (not None)
-    # for unset properties, so check for a concrete int instead.
+    # Detect width from chart
     width = getattr(chart, "width", None)
     if not isinstance(width, int):
         if hasattr(chart, "to_dict"):
@@ -236,7 +235,6 @@ def add_caption(
     line_height = round(font_s * LINE_HEIGHT_LONG)
 
     anchor = {"left": "start", "center": "middle", "right": "end"}[align]
-    # Split on newlines so Vega-Lite renders a multi-line title.
     title_text = text.split("\n") if "\n" in text else text
 
     caption = alt.TitleParams(
@@ -252,100 +250,3 @@ def add_caption(
     )
 
     return alt.vconcat(chart).properties(title=caption)
-
-
-# ---------------------------------------------------------------------------
-# Selection and hover helpers
-# ---------------------------------------------------------------------------
-def add_hover(
-    chart,
-    *,
-    opacity_normal: float = 0.6,
-    opacity_hover: float = 1.0,
-):
-    """Add hover highlighting to chart marks.
-
-    Adds a pointer-based selection that increases opacity on hover,
-    creating a visual highlight effect.
-
-    Parameters
-    ----------
-    chart
-        An Altair chart object.
-    opacity_normal
-        Opacity for non-hovered marks. Defaults to 0.6.
-    opacity_hover
-        Opacity for hovered marks. Defaults to 1.0.
-
-    Returns
-    -------
-    alt.Chart
-        The chart with hover interaction added.
-
-    Examples
-    --------
-    >>> chart = attaviz.add_hover(
-    ...     alt.Chart(data).mark_bar().encode(...)
-    ... )
-    >>> # Bars will highlight on hover
-    """
-    hover = alt.selection_point(on="pointerover", empty=False)
-    return chart.add_params(hover).encode(
-        opacity=alt.condition(
-            hover, alt.value(opacity_hover), alt.value(opacity_normal)
-        )
-    )
-
-
-def point_selection(name: str = "select", **kwargs):
-    """Create a point selection with WBG defaults.
-
-    Parameters
-    ----------
-    name
-        Name for the selection parameter. Defaults to "select".
-    **kwargs
-        Additional arguments passed to alt.selection_point().
-
-    Returns
-    -------
-    alt.SelectionParameter
-        A configured point selection.
-
-    Examples
-    --------
-    >>> select = attaviz.point_selection()
-    >>> chart = alt.Chart(data).mark_point().encode(...).add_params(select)
-    """
-    return alt.selection_point(name=name, **kwargs)
-
-
-def interval_selection(name: str = "brush"):
-    """Create an interval (brush) selection with WBG styling.
-
-    The brush uses the WBG selection primary color with appropriate
-    opacity and stroke styling.
-
-    Parameters
-    ----------
-    name
-        Name for the selection parameter. Defaults to "brush".
-
-    Returns
-    -------
-    alt.SelectionParameter
-        A configured interval selection with WBG styling.
-
-    Examples
-    --------
-    >>> brush = attaviz.interval_selection()
-    >>> chart = alt.Chart(data).mark_point().encode(...).add_params(brush)
-    """
-    return alt.selection_interval(
-        name=name,
-        mark=alt.BrushConfig(
-            fill=SELECTION_PRIMARY,
-            fillOpacity=0.15,
-            stroke=SELECTION_PRIMARY,
-        ),
-    )

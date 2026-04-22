@@ -1,0 +1,115 @@
+---
+title: "Formatting & helpers"
+---
+
+## Number formatting
+
+`format_number` applies WBG rules: automatic scale suffix (K/M/B), auto
+decimal places based on magnitude, and optional currency/percent/unit
+handling.
+
+```{python}
+import attaviz
+print(attaviz.format_number(1234567))              # 1.2M
+print(attaviz.format_number(0.456, percent=True))  # 45.60%
+print(attaviz.format_number(50000, currency=True)) # $50K
+print(attaviz.format_number(1234567890, unit="bytes"))  # 1.2G
+```
+
+Key parameters:
+
+- `decimals` — integer or `"auto"` (default). Auto uses 2 decimals for values
+  under 1, 1 decimal for 1–100, 0 above.
+- `scale` — `"K"`, `"M"`, `"B"`, `"G"`, or `"auto"`.
+- `currency` — prefix with `$`.
+- `percent` — multiply by 100 and suffix with `%`.
+- `unit` — when set to a technical unit (`W`, `byte`, `bit`, `ton`, ...),
+  uses `G` instead of `B` for billions.
+
+## D3 number format strings
+
+For Altair axes/tooltips, which expect a D3 format string rather than a
+Python-formatted value:
+
+```{python}
+print(attaviz.d3_number_format())                  # ',.1f'
+print(attaviz.d3_number_format(decimals=0))        # ',.0f'
+print(attaviz.d3_number_format(currency=True))     # '$,.1f'
+print(attaviz.d3_number_format(percent=True))      # '.1%'
+```
+
+D3 format strings don't support custom suffixes, so for K/M/B either
+pre-scale the data or indicate the scale in the axis title
+("GDP (millions)").
+
+## Date formatting
+
+```{python}
+from datetime import date
+import attaviz
+d = date(2023, 1, 15)
+print(attaviz.format_date(d, style="month_year"))               # Jan-23
+print(attaviz.format_date(d, style="month_year", short=False))  # January 2023
+print(attaviz.format_date(d, style="quarter"))                  # Q1-23
+print(attaviz.format_date(d, style="fiscal_year"))              # FY23
+```
+
+Supported `style` values: `"day"`, `"month"`, `"month_year"`, `"quarter"`,
+`"year"`, `"fiscal_year"`. The WBG fiscal year runs July–June (July 2023 is
+FY24; January 2023 is FY23).
+
+## D3 date format strings
+
+```{python}
+print(attaviz.d3_date_format("month_year"))               # %b-%y
+print(attaviz.d3_date_format("month_year", short=False))  # %B %Y
+print(attaviz.d3_date_format("year"))                     # %y
+```
+
+`"quarter"` and `"fiscal_year"` cannot be represented as D3 time-format
+strings. For those, pre-compute values with `format_date` and pass them to
+Altair as strings, or use a Vega expression in the axis encoding.
+
+## Captions
+
+Attach a styled caption below a chart.
+
+```python
+chart_with_caption = attaviz.add_caption(
+    chart,
+    "Source: World Bank Development Indicators, 2023",
+)
+```
+
+- `align` — `"left"` (default, on-spec), `"center"`, or `"right"`.
+- Embed a newline (`\n`) in the text for multi-line captions.
+
+## Hover highlighting
+
+```python
+chart = attaviz.add_hover(
+    alt.Chart(data).mark_bar().encode(...)
+)
+```
+
+Reduces opacity on non-hovered marks. Tune with `opacity_normal` and
+`opacity_hover`.
+
+## Selections
+
+Two pre-configured selection helpers with WBG styling:
+
+```python
+select = attaviz.point_selection()       # point click/tap
+brush  = attaviz.interval_selection()    # rectangular drag brush
+
+chart = (
+    alt.Chart(data)
+    .mark_point()
+    .encode(...)
+    .add_params(select, brush)
+)
+```
+
+The interval selection ships with a styled fill and stroke using
+`SELECTION_PRIMARY`.

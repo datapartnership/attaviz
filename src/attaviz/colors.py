@@ -1,7 +1,7 @@
 """World Bank Group color palettes for data visualization.
 
-All colors are sourced from the WBG Data Visualization Style Guide:
-https://wbg-vis-design.vercel.app/colors
+All colors are sourced from the WBG Data Visualization Style Guide
+Reference: https://worldbank.github.io/data-visualization-style-guide/
 """
 
 # ---------------------------------------------------------------------------
