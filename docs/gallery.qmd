@@ -1,0 +1,262 @@
+---
+title: Gallery
+jupyter: python3
+---
+
+
+A visual showcase of common chart types with the WBG theme enabled.
+
+
+```{python}
+import altair as alt
+from vega_datasets import data
+
+import attaviz
+
+attaviz.enable()
+```
+
+## Bar Chart
+
+```{python}
+source = data.barley()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Barley Yield by Site",
+        subtitle="Mean yield across varieties and years (bushels/acre)",
+    ),
+).mark_bar().encode(
+    x=alt.X("mean(yield):Q", title="Mean Yield"),
+    y=alt.Y("site:N", title="Site", sort="-x"),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+).properties(width=500, height=300)
+```
+
+## Line Chart
+
+```{python}
+source = data.stocks()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Stock Prices 2000–2010", subtitle="Monthly closing price by company"
+    ),
+).mark_line().encode(
+    x=alt.X("date:T", title=None),
+    y=alt.Y("price:Q", title="Price (USD)"),
+    color=alt.Color("symbol:N", title="Symbol"),
+).properties(width=550, height=350)
+```
+
+## Scatter Plot
+
+```{python}
+source = data.cars()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Horsepower vs. Fuel Efficiency",
+        subtitle="Relationship between engine power and mileage by origin",
+    ),
+).mark_circle(size=80).encode(
+    x=alt.X("Horsepower:Q"),
+    y=alt.Y("Miles_per_Gallon:Q", title="Miles per Gallon"),
+    color=alt.Color("Origin:N", title="Origin"),
+    tooltip=[
+        "Name:N",
+        "Horsepower:Q",
+        alt.Tooltip("Miles_per_Gallon:Q", title="Miles per Gallon"),
+    ],
+).properties(width=550, height=380)
+```
+
+## Area Chart
+
+```{python}
+source = data.iowa_electricity()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Iowa Electricity Generation", subtitle="Net generation by source (GWh)"
+    ),
+).mark_area().encode(
+    x=alt.X("year:T", title=None),
+    y=alt.Y("net_generation:Q", title="Net Generation (GWh)"),
+    color=alt.Color("source:N", title="Source"),
+).properties(width=550, height=350)
+```
+
+## Heatmap
+
+```{python}
+source = data.seattle_weather()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Seattle Monthly Max Temperatures",
+        subtitle="Average daily maximum temperature (°F) by month",
+    ),
+).mark_rect().encode(
+    x=alt.X("month(date):O", title="Month"),
+    y=alt.Y("year(date):O", title="Year", axis=alt.Axis(grid=False)),
+    color=alt.Color("mean(temp_max):Q", title="Avg Max Temp (°F)"),
+).properties(width=500, height=250)
+```
+
+## Histogram
+
+```{python}
+source = data.movies()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Distribution of IMDB Ratings",
+        subtitle="Histogram of movie ratings from the IMDB database",
+    ),
+).mark_bar().encode(
+    x=alt.X("IMDB_Rating:Q", bin=alt.Bin(maxbins=30), title="IMDB Rating"),
+    y=alt.Y("count()", title="Number of Movies"),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+).properties(width=550, height=300)
+```
+
+## Diverging Color Scale
+
+```{python}
+source = data.us_employment()
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "US Nonfarm Employment Change",
+        subtitle="Monthly change in nonfarm payrolls (thousands), 2006–2015",
+    ),
+).mark_bar().encode(
+    x=alt.X("month:T", title=None),
+    y=alt.Y("nonfarm_change:Q", title="Change (thousands)"),
+    color=alt.Color(
+        "nonfarm_change:Q",
+        scale=alt.Scale(range=attaviz.DIV_DEFAULT, domainMid=0),
+        title="Change",
+    ),
+    tooltip=[
+        alt.Tooltip("month:T", title="Month"),
+        alt.Tooltip("nonfarm_change:Q", title="Change (thousands)"),
+    ],
+).properties(width=500, height=300)
+```
+
+## Faceted Small Multiples
+
+```{python}
+source = data.iris()
+
+alt.Chart(
+    source,
+).mark_circle(size=60).encode(
+    x=alt.X("sepalLength:Q", title="Sepal Length"),
+    y=alt.Y("petalLength:Q", title="Petal Length"),
+    color=alt.Color("species:N", title="Species"),
+).properties(
+    width=200,
+    height=200,
+).facet(
+    column=alt.Column("species:N", title=None),
+).properties(
+    title=alt.Title(
+        "Iris Measurements by Species", subtitle="Sepal vs. petal dimensions"
+    )
+)
+```
+
+## Title, Subtitle, and Caption
+
+```{python}
+source = data.barley()
+
+chart = (
+    alt.Chart(
+        source,
+        title=alt.Title(
+            "Barley Yield by Site",
+            subtitle="Mean yield across varieties and years (bushels/acre)",
+        ),
+    )
+    .mark_bar()
+    .encode(
+        x=alt.X("mean(yield):Q", title="Mean Yield"),
+        y=alt.Y("site:N", sort="-x", title=None),
+        color=alt.value(attaviz.CATEGORICAL[0]),
+    )
+    .properties(width=500, height=300)
+)
+
+caption = (
+    alt.Chart({"values": [{}]})
+    .mark_text(
+        align="right",
+        font="Open Sans, sans-serif",
+        fontSize=12,
+        color=attaviz.TEXT_SUBTLE,
+    )
+    .encode(
+        text=alt.value("Source: Minnesota agricultural experiment stations, 1931–1932")
+    )
+    .properties(width=500)
+)
+
+alt.vconcat(chart, caption, spacing=21)
+```
+
+## Formatted Axis Labels
+
+```{python}
+source = data.gapminder().query("year == 2005").nlargest(5, "pop")
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Most Populous Countries",
+        subtitle="Axis formatted via d3_number_format",
+    ),
+).mark_bar().encode(
+    x=alt.X(
+        "pop:Q",
+        title="Population",
+        axis=alt.Axis(format=attaviz.d3_number_format(decimals=0)),
+    ),
+    y=alt.Y("country:N", sort="-x", title=None),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+).properties(width=500, height=250)
+```
+
+### Auto-scaled with `vega_scale_labelExpr`
+
+```{python}
+source = data.gapminder().query("year == 2005").nlargest(5, "pop")
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "Most Populous Countries",
+        subtitle="Raw values, axis auto-scaled to K/M/B per tick",
+    ),
+).mark_bar().encode(
+    x=alt.X(
+        "pop:Q",
+        title="Population",
+        axis=alt.Axis(labelExpr=attaviz.vega_scale_labelExpr()),
+    ),
+    y=alt.Y("country:N", sort="-x", title=None),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+    tooltip=alt.Tooltip("pop:Q", format=attaviz.d3_number_format(decimals=0))
+).properties(width=500, height=250)
+```
+

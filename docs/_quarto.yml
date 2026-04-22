@@ -6,8 +6,7 @@ project:
     - "getting-started/*.qmd"
     - "reference/*.qmd"
     - "about.qmd"
-    - "gallery.ipynb"
-    - "!superpowers/**"
+    - "gallery.qmd"
 
 website:
   title: "attaviz"
@@ -23,7 +22,7 @@ website:
           - getting-started/installation.qmd
           - getting-started/quickstart.qmd
       - text: "Gallery"
-        href: gallery.ipynb
+        href: gallery.qmd
       - text: "Reference"
         menu:
           - reference/theme.qmd
