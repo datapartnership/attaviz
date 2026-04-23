@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "Country borders or names do not necessarily reflect the World Bank Group’s official position. All maps are for illustrative purposes and do not imply the expression of any opinion on the part of the World Bank, concerning the legal status of any country or territory or concerning the delimitation of frontiers or boundaries."
+title: "attaviz: World Bank Group data visualization theme for Altair"
+authors:
+  - affiliation: World Bank
+    family-names: Hutabarat
+    given-names: Farhan Reynaldo
+keywords:
+  - data-visualization
+  - altair
+  - vega
+  - world-bank
+repository-code: https://github.com/datapartnership/attaviz
