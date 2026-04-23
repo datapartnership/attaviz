@@ -7,13 +7,13 @@ title: "Installation"
 ## With uv
 
 ```bash
-uv add "attaviz @ git+https://github.com/farhanreynaldo/attaviz.git"
+uv add "attaviz @ git+https://github.com/datapartnership/attaviz.git"
 ```
 
 ## With pip
 
 ```bash
-pip install "git+https://github.com/farhanreynaldo/attaviz.git"
+pip install "git+https://github.com/datapartnership/attaviz.git"
 ```
 
 The quoted form prevents the shell from expanding the `@` and `+` characters.
@@ -31,7 +31,7 @@ automatically.
 Clone and install the dev environment:
 
 ```bash
-git clone https://github.com/farhanreynaldo/attaviz.git
+git clone https://github.com/datapartnership/attaviz.git
 cd attaviz
 uv sync --dev
 ```
