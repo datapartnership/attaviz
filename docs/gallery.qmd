@@ -237,7 +237,75 @@ alt.Chart(
 ).properties(width=500, height=250)
 ```
 
-### Auto-scaled with `vega_scale_labelExpr`
+## Choropleth Map
+
+```{python}
+from vega_datasets import data as vega_data
+
+counties = alt.topo_feature(vega_data.us_10m.url, "counties")
+unemployment = vega_data.unemployment.url
+
+alt.Chart(
+    counties,
+    title=alt.Title(
+        "US Unemployment by County",
+        subtitle="Share of civilian labor force unemployed (2009)",
+    ),
+).mark_geoshape(stroke="white", strokeWidth=0.2).encode(
+    color=alt.Color(
+        "rate:Q",
+        scale=alt.Scale(range=attaviz.SEQ_BLUE),
+        title="Unemployment rate",
+        legend=alt.Legend(format=".0%"),
+    ),
+    tooltip=[
+        alt.Tooltip("id:N", title="FIPS"),
+        alt.Tooltip("rate:Q", title="Rate", format=".1%"),
+    ],
+).transform_lookup(
+    lookup="id",
+    from_=alt.LookupData(unemployment, "id", ["rate"]),
+).project(type="albersUsa").properties(width=600, height=360)
+```
+
+## Point Map
+
+```{python}
+states = alt.topo_feature(vega_data.us_10m.url, "states")
+airports = vega_data.airports.url
+
+base = alt.Chart(states).mark_geoshape(
+    fill=attaviz.NO_DATA,
+    stroke="white",
+    strokeWidth=0.5,
+    tooltip=None,
+)
+
+points = alt.Chart(airports).mark_circle(
+    size=12,
+    opacity=0.6,
+    color=attaviz.CATEGORICAL[0],
+).encode(
+    longitude="longitude:Q",
+    latitude="latitude:Q",
+    tooltip=[
+        alt.Tooltip("name:N", title="Airport"),
+        alt.Tooltip("city:N", title="City"),
+        alt.Tooltip("state:N", title="State"),
+    ],
+)
+
+(base + points).project(type="albersUsa").properties(
+    width=600,
+    height=360,
+    title=alt.Title(
+        "US Airports",
+        subtitle="Locations of public airports in the contiguous United States",
+    ),
+)
+```
+
+## Auto-scaled with `vega_scale_labelExpr`
 
 ```{python}
 source = data.gapminder().query("year == 2005").nlargest(5, "pop")
