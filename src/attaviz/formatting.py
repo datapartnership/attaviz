@@ -10,15 +10,36 @@ import math
 from datetime import date, datetime
 from typing import Literal, Union
 
-# Scale thresholds and suffixes
+# (min_value_to_trigger, divisor, suffix). Per WBG style guide, scaling
+# kicks in at >=10,000 and below that we display the unscaled number.
 _SCALES = [
-    (1_000_000_000, "B"),
-    (1_000_000, "M"),
-    (1_000, "K"),
+    (1_000_000_000, 1_000_000_000, "B"),
+    (1_000_000, 1_000_000, "M"),
+    (10_000, 1_000, "K"),
 ]
 
-# Units that use G instead of B (watts, tons, bits, bytes)
 _G_UNITS = {"W", "watt", "watts", "ton", "tons", "bit", "bits", "byte", "bytes"}
+
+_UNIT_ABBREVS: dict[str, str] = {
+    "watt": "w",
+    "byte": "B",
+    "bit": "b",
+    "ton": "t",
+}
+
+
+def _normalize_unit(unit: str) -> str:
+    return unit.lower().rstrip("s")
+
+
+def _unit_suffix(unit: str | None) -> str:
+    """Return the suffix to append after the scale letter, or '' if none."""
+    if not unit:
+        return ""
+    key = _normalize_unit(unit)
+    if key in _UNIT_ABBREVS:
+        return _UNIT_ABBREVS[key]
+    return f" {unit}"
 
 ScaleType = Literal["K", "M", "B", "G", "auto"]
 DateStyle = Literal["day", "month", "month_year", "quarter", "year", "fiscal_year"]
@@ -62,15 +83,21 @@ def format_number(
     --------
     >>> format_number(1234567)
     '1.2M'
+    >>> format_number(1234)
+    '1,234'
     >>> format_number(0.456, percent=True)
-    '45.60%'
-    >>> format_number(1234567890, unit="bytes")
-    '1.2G'
+    '45.6%'
+    >>> format_number(1234567, unit="watts")  # requires _UNIT_ABBREVS entry
+    '1.2Mw'
     >>> format_number(50000, currency=True)
-    '$50K'
+    '$50.0K'
     """
     if value is None or (isinstance(value, float) and math.isnan(value)):
         return "N/A"
+
+    if value == 0 and decimals == "auto" and not percent:
+        prefix = "$" if currency else ""
+        return f"{prefix}0{_unit_suffix(unit)}"
 
     if percent:
         value = value * 100
@@ -80,18 +107,14 @@ def format_number(
     scale_factor = 1
     scale_suffix = ""
 
+    g_unit_keys = {_normalize_unit(u) for u in _G_UNITS}
+    is_g_unit = unit is not None and _normalize_unit(unit) in g_unit_keys
+
     if scale == "auto" and not percent:
-        for threshold, suffix in _SCALES:
+        for threshold, divisor, suffix in _SCALES:
             if abs_value >= threshold:
-                scale_factor = threshold
-                scale_suffix = suffix
-                if (
-                    suffix == "B"
-                    and unit
-                    and unit.lower().rstrip("s")
-                    in {u.lower().rstrip("s") for u in _G_UNITS}
-                ):
-                    scale_suffix = "G"
+                scale_factor = divisor
+                scale_suffix = "G" if suffix == "B" and is_g_unit else suffix
                 break
     elif scale in ("K", "M", "B", "G"):
         scale_map = {"K": 1_000, "M": 1_000_000, "B": 1_000_000_000, "G": 1_000_000_000}
@@ -114,7 +137,10 @@ def format_number(
     formatted = f"{scaled_value:,.{dec}f}"
 
     prefix = "$" if currency else ""
-    suffix = "%" if percent else scale_suffix
+    if percent:
+        suffix = "%"
+    else:
+        suffix = scale_suffix + _unit_suffix(unit)
 
     return f"{prefix}{formatted}{suffix}"
 
@@ -171,7 +197,7 @@ def vega_scale_labelExpr(
     *,
     currency: bool = False,
     unit: str | None = None,
-    decimals: int = 1,
+    decimals: int | Literal["auto"] = "auto",
 ) -> str:
     """Return a Vega expression string for auto-scaled Altair axis labels.
 
@@ -185,10 +211,14 @@ def vega_scale_labelExpr(
         If True, prefix every label with "$".
     unit
         If provided and the unit is a technical one (W, ton, bit, byte, ...),
-        the billions suffix becomes "G" instead of "B".
+        the billions suffix becomes "G" instead of "B". If the unit has an
+        entry in ``_UNIT_ABBREVS``, that abbreviation is appended to every tick
+        (e.g. "MB", "Gw").
     decimals
-        Decimal places for the scaled value. Defaults to 1 (WBG default for
-        the 1-100 range, which covers most scaled ticks).
+        Decimal places for the scaled value. "auto" (default) follows the WBG
+        rule per-tick based on the *scaled* magnitude: 0 decimals if >=100,
+        1 decimal if >=1, 2 decimals otherwise. Pass an int to force a fixed
+        decimal count across all ticks.
 
     Returns
     -------
@@ -202,21 +232,32 @@ def vega_scale_labelExpr(
     """
     prefix = "$" if currency else ""
 
-    # Swap "B" -> "G" for technical units, matching format_number's behavior.
     billions_suffix = "B"
-    if unit and unit.lower().rstrip("s") in {u.lower().rstrip("s") for u in _G_UNITS}:
+    if unit and _normalize_unit(unit) in {_normalize_unit(u) for u in _G_UNITS}:
         billions_suffix = "G"
+    unit_tail = _unit_suffix(unit)
 
-    spec = f"',.{decimals}f'"
-    int_spec = "',.0f'"
     v = "datum.value"
     p = repr(prefix)
 
+    def tier(scaled: str, suffix: str) -> str:
+        tail = repr(suffix + unit_tail)
+        if decimals == "auto":
+            return (
+                f"(abs({scaled}) >= 100 ? {p} + format({scaled}, ',.0f') + {tail} : "
+                f"abs({scaled}) >= 1 ? {p} + format({scaled}, ',.1f') + {tail} : "
+                f"{p} + format({scaled}, ',.2f') + {tail})"
+            )
+        spec = f"',.{decimals}f'"
+        return f"({p} + format({scaled}, {spec}) + {tail})"
+
+    zero_label = repr(prefix + "0" + unit_tail)
     return (
-        f"abs({v}) >= 1e9 ? {p} + format({v}/1e9, {spec}) + '{billions_suffix}' : "
-        f"abs({v}) >= 1e6 ? {p} + format({v}/1e6, {spec}) + 'M' : "
-        f"abs({v}) >= 1e3 ? {p} + format({v}/1e3, {spec}) + 'K' : "
-        f"{p} + format({v}, {int_spec})"
+        f"{v} === 0 ? {zero_label} : "
+        f"abs({v}) >= 1e9 ? {tier(f'{v}/1e9', billions_suffix)} : "
+        f"abs({v}) >= 1e6 ? {tier(f'{v}/1e6', 'M')} : "
+        f"abs({v}) >= 1e4 ? {tier(f'{v}/1e3', 'K')} : "
+        f"{tier(v, '')}"
     )
 
 
@@ -255,7 +296,7 @@ def format_date(
     >>> format_date(date(2023, 1, 15), style="month_year", short=False)
     'January 2023'
     >>> format_date(date(2023, 3, 1), style="quarter")
-    'Q1-23'
+    '23Q1'
     """
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -264,7 +305,7 @@ def format_date(
 
     if style == "day":
         if short:
-            return value.strftime("%-m/%-d/%Y")
+            return value.strftime("%-d/%-m/%Y")
         return value.strftime("%B %-d, %Y")
 
     if style == "month":
@@ -280,8 +321,8 @@ def format_date(
     if style == "quarter":
         quarter = (value.month - 1) // 3 + 1
         if short:
-            return f"Q{quarter}-{value.strftime('%y')}"
-        return f"Q{quarter} {value.year}"
+            return f"{value.strftime('%y')}Q{quarter}"
+        return f"{value.year}Q{quarter}"
 
     if style == "year":
         if short:
