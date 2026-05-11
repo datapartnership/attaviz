@@ -198,21 +198,7 @@ chart = (
     .properties(width=500, height=300)
 )
 
-caption = (
-    alt.Chart({"values": [{}]})
-    .mark_text(
-        align="right",
-        font="Open Sans, sans-serif",
-        fontSize=12,
-        color=attaviz.TEXT_SUBTLE,
-    )
-    .encode(
-        text=alt.value("Source: Minnesota agricultural experiment stations, 1931–1932")
-    )
-    .properties(width=500)
-)
-
-alt.vconcat(chart, caption, spacing=21)
+attaviz.add_caption(chart, "Source: Minnesota agricultural experiment stations, 1931–1932")
 ```
 
 ## Formatted Axis Labels
