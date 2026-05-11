@@ -222,7 +222,7 @@ def add_caption(
     width = getattr(chart, "width", None)
     if not isinstance(width, int):
         if hasattr(chart, "to_dict"):
-            spec = chart.to_dict()
+            spec = chart.to_dict(format="vega") if alt.data_transformers.active == "vegafusion" else chart.to_dict()
             width = spec.get("width", DEFAULT_DIMENSIONS["medium"][0])
             if not isinstance(width, int):
                 width = DEFAULT_DIMENSIONS["medium"][0]
