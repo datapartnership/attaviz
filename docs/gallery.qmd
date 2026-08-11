@@ -51,6 +51,30 @@ alt.Chart(
 ).properties(width=550, height=350)
 ```
 
+## Line Chart with Hover
+
+```{python}
+source = data.stocks()
+
+lines = (
+    alt.Chart(
+        source,
+        title=alt.Title(
+            "Stock Prices 2000–2010", subtitle="Hover to compare companies at a date"
+        ),
+    )
+    .mark_line()
+    .encode(
+        x=alt.X("date:T", title=None),
+        y=alt.Y("price:Q", title="Price (USD)"),
+        color=alt.Color("symbol:N", title="Symbol"),
+    )
+    .properties(width=550, height=350)
+)
+
+attaviz.add_hover(lines, x="date", format="$.2f")
+```
+
 ## Scatter Plot
 
 ```{python}
