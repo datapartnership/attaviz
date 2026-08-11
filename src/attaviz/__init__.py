@@ -69,7 +69,7 @@ from .colors import (  # noqa: F401
     TOTAL,
     URBANIZATION,
 )
-from .theme import (  # noqa: F401 – re-exported as public API
+from .theme import (  # noqa: F401
     ASPECT_RATIOS,
     DEFAULT_DIMENSIONS,
     FONT,
@@ -82,6 +82,7 @@ from .theme import (  # noqa: F401 – re-exported as public API
     configure_size,
     wbg_theme,
 )
+from .interactions import add_hover  # noqa: F401
 
 __all__ = [
     # Theme functions
@@ -102,8 +103,6 @@ __all__ = [
     # Caption and interaction helpers
     "add_caption",
     "add_hover",
-    "point_selection",
-    "interval_selection",
     # Responsive sizing constants
     "SIZE_BREAKPOINTS",
     "TYPOGRAPHY",
