@@ -12,15 +12,21 @@ uv add "attaviz @ git+https://github.com/datapartnership/attaviz.git"
 pip install "git+https://github.com/datapartnership/attaviz.git"
 ```
 
+Add the optional `maps` extra for choropleths: `pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"`.
+
 ## Quick start
 
 ```python
-import altair as alt
 import attaviz
 
 attaviz.enable()  # every chart now uses the WBG theme
 
-alt.Chart(data).mark_bar().encode(x="category:N", y="value:Q")
+chart = attaviz.bar(
+    data,
+    category="country",
+    value="population",
+    title="Population by country",
+)
 ```
 
 See the [documentation site](https://datapartnership.github.io/attaviz/) for the full gallery and reference.

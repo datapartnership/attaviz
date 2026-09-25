@@ -1,0 +1,82 @@
+---
+title: "Maps"
+---
+
+Install the optional map dependency before using `choropleth()`:
+
+```bash
+pip install "attaviz[maps]"
+```
+
+## Choropleth
+
+Pass an already joined GeoDataFrame with polygon geometry, a known CRS, one
+numeric value column, and one unique label column:
+
+```python
+chart = attaviz.choropleth(
+    regions,
+    value="poverty_rate",
+    label="region_name",
+    value_label="Poverty rate",
+    value_format="percent",
+    meaning="higher_is_worse",
+    classification="quantile",
+    classes=5,
+    highlight="Central",
+    title="Poverty rates vary across regions",
+)
+```
+
+Use rates, shares, densities, or normalized indices for area-based color maps.
+Raw totals often reflect region size or population more than the phenomenon
+being mapped.
+
+Attaviz reprojects known coordinate systems to WGS84 on a copy. It rejects
+missing CRS information, invalid or non-polygon geometry, duplicate labels,
+non-numeric values, and infinite values. Missing values remain visible in the
+`NO_DATA` color.
+
+## Color meaning and classification
+
+`meaning` accepts `"neutral"`, `"higher_is_better"`, `"higher_is_worse"`, or
+`"change"`. Change maps use a symmetric domain around zero unless `domain` is
+provided explicitly.
+
+`classification` accepts:
+
+- `"continuous"` (default)
+- `"equal_interval"` with `classes`
+- `"quantile"` with `classes`
+- `"custom"` with strictly increasing `breaks`
+
+```python
+custom = attaviz.choropleth(
+    regions,
+    value="poverty_rate",
+    label="region_name",
+    classification="custom",
+    breaks=[0.1, 0.2, 0.3, 0.5],
+    value_format="percent",
+)
+```
+
+Use `palette` for an explicit color sequence and `domain=(minimum, maximum)`
+for a fixed comparable scale. Currency formatting requires a currency code.
+
+## Map annotations
+
+```python
+chart = attaviz.add_map_annotation(
+    chart,
+    longitude=106.8,
+    latitude=-6.2,
+    text="Jakarta",
+    position="above",
+    marker=True,
+)
+```
+
+Positions are `"above"`, `"below"`, `"left"`, and `"right"`. Invoke the
+helper repeatedly for multiple labels. Coordinates use WGS84 longitude and
+latitude; coordinates outside the mapped bounds produce a warning.

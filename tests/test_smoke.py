@@ -43,4 +43,4 @@ def test_d3_date_format_rejects_unsupported_styles(style):
 
 def test_format_number_scales():
     assert attaviz.format_number(1_234_567) == "1.2M"
-    assert attaviz.format_number(1_234_567_890, unit="bytes") == "1.2G"
+    assert attaviz.format_number(1_234_567_890, unit="bytes") == "1.2GB"

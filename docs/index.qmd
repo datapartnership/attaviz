@@ -6,15 +6,15 @@ subtitle: "World Bank Group data visualization theme for Altair"
 An [Altair](https://altair-viz.github.io/) theme implementing the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
 ```python
-import altair as alt
 import attaviz
 
 attaviz.enable()
 
-chart = alt.Chart(data).mark_bar().encode(
-    x="category:N",
-    y="value:Q",
-    color="category:N",
+chart = attaviz.bar(
+    data,
+    category="country",
+    value="population",
+    title="Population by country",
 )
 ```
 
@@ -22,10 +22,11 @@ chart = alt.Chart(data).mark_bar().encode(
 
 - **[Install](getting-started/installation.qmd)**
 - **[Quick start](getting-started/quickstart.qmd)**
-- **[Gallery](gallery.ipynb)**
+- **[Gallery](gallery.qmd)**
 
 ## Reference
 
 - **[Theme](reference/theme.qmd)**: what the theme applies, size variants, and per-chart sizing.
+- **[Chart factories](reference/charts.qmd)**: opinionated bar, line, scatter, annotation, and publication helpers.
 - **[Color palettes](reference/palettes.qmd)**: categorical, sequential, diverging, semantic, pillars, greys.
 - **[Formatting & helpers](reference/formatting.qmd)**: number/date formatting, captions, hover, selections.

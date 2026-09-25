@@ -26,6 +26,8 @@ website:
       - text: "Reference"
         menu:
           - reference/theme.qmd
+          - reference/charts.qmd
+          - reference/maps.qmd
           - reference/palettes.qmd
           - reference/formatting.qmd
     right:
@@ -41,3 +43,5 @@ format:
 
 execute:
   freeze: auto
+
+jupyter: python3

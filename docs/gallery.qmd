@@ -9,6 +9,7 @@ A visual showcase of common chart types with the WBG theme enabled.
 
 ```{python}
 import altair as alt
+import pandas as pd
 from vega_datasets import data
 
 import attaviz
@@ -133,6 +134,93 @@ alt.Chart(
 ).properties(width=500, height=250)
 ```
 
+## Opinionated Bar with Highlight and Publication Frame
+
+```{python}
+source = pd.DataFrame(
+    {
+        "country": ["Indonesia", "Philippines", "Vietnam", "Thailand", "Malaysia"],
+        "gdp": [1.37e12, 437e9, 430e9, 515e9, 400e9],
+    }
+)
+
+chart = attaviz.bar(
+    source,
+    category="country",
+    value="gdp",
+    title="Indonesia has Southeast Asia's largest economy",
+    subtitle="Current-price GDP, illustrative values",
+    highlight="Indonesia",
+    value_format="currency",
+    currency="USD",
+)
+
+attaviz.frame(
+    chart,
+    description="Horizontal bars comparing GDP in five Southeast Asian economies; Indonesia is highlighted.",
+    source="World Bank",
+    source_url="https://data.worldbank.org/",
+    note="Values are included for interface demonstration.",
+)
+```
+
+## Opinionated Line with Annotation and Reference
+
+```{python}
+source = data.stocks().query("symbol in ['AAPL', 'MSFT', 'GOOG']")
+
+chart = attaviz.line(
+    source,
+    x="date",
+    y="price",
+    series="symbol",
+    title="Technology stocks followed different paths",
+    subtitle="Monthly closing price, 2000–2010",
+    highlight="AAPL",
+    width=650,
+)
+
+chart = attaviz.add_reference_line(
+    chart,
+    value=500,
+    axis="y",
+    label="500",
+)
+
+attaviz.add_annotation(
+    chart,
+    x=pd.Timestamp("2007-12-01"),
+    y=198.08,
+    text="Apple approached 200",
+    position="above",
+)
+```
+
+## Opinionated Scatter with Highlight and Reference Range
+
+```{python}
+source = data.cars().dropna(subset=["Horsepower", "Miles_per_Gallon", "Name"])
+
+chart = attaviz.scatter(
+    source,
+    x="Horsepower",
+    y="Miles_per_Gallon",
+    label="Name",
+    series="Origin",
+    highlight="honda civic",
+    title="More powerful cars tend to use more fuel",
+    subtitle="Horsepower and fuel economy",
+)
+
+attaviz.add_reference_range(
+    chart,
+    start=25,
+    end=35,
+    axis="y",
+    label="25–35 mpg",
+)
+```
+
 ## Histogram
 
 ```{python}
@@ -250,37 +338,42 @@ alt.Chart(
 ## Choropleth Map
 
 ```{python}
-from vega_datasets import data as vega_data
+import geopandas as gpd
 
-counties = alt.topo_feature(vega_data.us_10m.url, "counties")
-unemployment = vega_data.unemployment.url
+countries = gpd.read_file("data/southeast-asia.geojson")
 
-alt.Chart(
-    counties,
-    title=alt.Title(
-        "US Unemployment by County",
-        subtitle="Share of civilian labor force unemployed (2009)",
-    ),
-).mark_geoshape(stroke="white", strokeWidth=0.2).encode(
-    color=alt.Color(
-        "rate:Q",
-        scale=alt.Scale(range=attaviz.SEQ_BLUE),
-        title="Unemployment rate",
-        legend=alt.Legend(format=".0%"),
-    ),
-    tooltip=[
-        alt.Tooltip("id:N", title="FIPS"),
-        alt.Tooltip("rate:Q", title="Rate", format=".1%"),
-    ],
-).transform_lookup(
-    lookup="id",
-    from_=alt.LookupData(unemployment, "id", ["rate"]),
-).project(type="albersUsa").properties(width=600, height=360)
+chart = attaviz.choropleth(
+    countries,
+    value="gdp_per_capita",
+    label="country",
+    value_label="GDP per capita (USD)",
+    meaning="higher_is_better",
+    classification="custom",
+    breaks=[3_000, 5_000, 10_000, 20_000],
+    value_format=",.0f",
+    highlight="Indonesia",
+    tooltip=["population"],
+    title="Income levels vary widely across Southeast Asia",
+    subtitle="GDP per capita, 2019 estimates",
+    projection="mercator",
+    width=700,
+    height=450,
+)
+
+attaviz.frame(
+    chart,
+    description="A choropleth of 2019 GDP per capita estimates across eleven Southeast Asian economies; Indonesia is highlighted.",
+    source="Natural Earth",
+    source_url="https://www.naturalearthdata.com/",
+    note="GDP per capita is calculated from Natural Earth's population and GDP estimates. Boundaries follow Natural Earth's de facto representation.",
+)
 ```
 
 ## Point Map
 
 ```{python}
+from vega_datasets import data as vega_data
+
 states = alt.topo_feature(vega_data.us_10m.url, "states")
 airports = vega_data.airports.url
 
@@ -337,4 +430,3 @@ alt.Chart(
     tooltip=alt.Tooltip("pop:Q", format=attaviz.d3_number_format(decimals=0))
 ).properties(width=500, height=250)
 ```
-

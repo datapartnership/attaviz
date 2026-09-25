@@ -1,0 +1,146 @@
+---
+title: "Chart factories"
+---
+
+Attaviz factories turn summarized pandas DataFrames into publication-ready
+Altair charts. Enable the theme once before creating charts:
+
+```python
+import attaviz
+
+attaviz.enable()
+```
+
+Every factory returns an ordinary Altair chart. Use Altair directly after the
+factory when a chart needs customization outside the common editorial path.
+
+## Bar
+
+`bar()` creates horizontal bars and requires one row per category.
+
+```python
+chart = attaviz.bar(
+    data,
+    category="country",
+    value="population",
+    title="Population by country",
+    subtitle="Millions, 2025",
+    sort="descending",
+    labels=True,
+    highlight="Indonesia",
+    value_format="auto",
+    width="responsive",
+)
+```
+
+`sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
+category sequence. Duplicate categories raise an error rather than being
+aggregated silently.
+
+## Line
+
+`line()` creates one line or uses `series` to identify multiple lines.
+
+```python
+chart = attaviz.line(
+    data,
+    x="year",
+    y="population",
+    series="country",
+    highlight="Indonesia",
+    end_labels=True,
+    points=False,
+    zero=False,
+)
+```
+
+Each x value must be unique for a single line. With `series`, every
+`(x, series)` pair must be unique. Missing y values create visible gaps.
+Up to five series use end labels; larger charts use a legend.
+
+## Scatter
+
+```python
+chart = attaviz.scatter(
+    data,
+    x="income",
+    y="life_expectancy",
+    label="country",
+    series="region",
+    highlight=["Indonesia", "Malaysia"],
+)
+```
+
+`label` identifies observations in tooltips and supplies direct labels for
+highlighted points. `series` groups observations by color.
+
+## Formats and dimensions
+
+Number formats accept `"auto"`, `"integer"`, `"decimal"`, `"percent"`,
+`"currency"`, or a D3 number format string. Currency formatting requires an
+ISO code:
+
+```python
+attaviz.bar(
+    data,
+    category="country",
+    value="gdp",
+    value_format="currency",
+    currency="USD",
+)
+```
+
+The default `width="responsive"` fills the parent HTML container. Pass a
+numeric width for deterministic static exports. `frame()` resolves a responsive
+chart to the theme's 600 px publication width because Vega-Lite does not
+reliably support container sizing inside vertical compositions.
+
+## Annotations and references
+
+```python
+chart = attaviz.add_annotation(
+    chart,
+    x=2020,
+    y=275,
+    text="Population passed 275 million",
+    position="above",
+)
+
+chart = attaviz.add_reference_line(
+    chart,
+    value=300,
+    axis="y",
+    label="Projection",
+)
+
+chart = attaviz.add_reference_range(
+    chart,
+    start=250,
+    end=300,
+    axis="y",
+    label="Expected range",
+)
+```
+
+Annotations use data coordinates. Reference helpers require an explicit x or y
+axis and compose with all three factory outputs.
+
+## Publication frame
+
+Apply `frame()` last to add accessibility metadata and publication details:
+
+```python
+chart = attaviz.frame(
+    chart,
+    description="A line chart showing population growth from 2010 to 2025.",
+    source="World Bank",
+    source_url="https://data.worldbank.org/",
+    note="2025 values are estimates.",
+    byline="Data team",
+)
+```
+
+`description` is required and is exposed as Vega-Lite accessibility metadata.
+The other fields are optional and appear beneath the chart, aligned with its
+title. `source_url` is retained in Vega-Lite `usermeta` for host integrations;
+native Vega-Lite titles do not support hyperlinks.

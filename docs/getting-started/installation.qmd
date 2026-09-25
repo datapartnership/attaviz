@@ -16,6 +16,14 @@ uv add "attaviz @ git+https://github.com/datapartnership/attaviz.git"
 pip install "git+https://github.com/datapartnership/attaviz.git"
 ```
 
+For choropleth maps, install the optional GeoPandas support:
+
+```bash
+uv add "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
+# or
+pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
+```
+
 The quoted form prevents the shell from expanding the `@` and `+` characters.
 
 ## Requirements
@@ -23,7 +31,7 @@ The quoted form prevents the shell from expanding the `@` and `+` characters.
 - Python 3.9 or newer
 - Altair 5 or newer
 
-Dependencies (`altair`, `pyarrow`, `vegafusion`, `vl-convert-python`) install
+Dependencies (`altair`, `pandas`, `pyarrow`, `vegafusion`, `vl-convert-python`) install
 automatically.
 
 ## Local development

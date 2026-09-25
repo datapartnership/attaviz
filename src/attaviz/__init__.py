@@ -83,6 +83,16 @@ from .theme import (  # noqa: F401
     wbg_theme,
 )
 from .interactions import add_hover  # noqa: F401
+from .charts import (  # noqa: F401
+    add_annotation,
+    add_reference_line,
+    add_reference_range,
+    bar,
+    frame,
+    line,
+    scatter,
+)
+from .maps import add_map_annotation, choropleth  # noqa: F401
 
 __all__ = [
     # Theme functions
@@ -103,6 +113,16 @@ __all__ = [
     # Caption and interaction helpers
     "add_caption",
     "add_hover",
+    # Opinionated chart factories and composition helpers
+    "bar",
+    "line",
+    "scatter",
+    "frame",
+    "add_annotation",
+    "add_reference_line",
+    "add_reference_range",
+    "choropleth",
+    "add_map_annotation",
     # Responsive sizing constants
     "SIZE_BREAKPOINTS",
     "TYPOGRAPHY",

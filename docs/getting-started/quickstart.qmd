@@ -2,21 +2,46 @@
 title: "Quick start"
 ---
 
-Enable the WBG theme once, then build Altair charts as usual.
+Enable the WBG theme once, then pass summarized data to an opinionated chart
+factory.
 
 ```{python}
-import altair as alt
 import attaviz
 from vega_datasets import data
 
 attaviz.enable()
 
-source = data.cars()
+source = (
+    data.barley()
+    .groupby("site", as_index=False)["yield"]
+    .mean()
+)
 
-alt.Chart(source).mark_point().encode(
-    x="Horsepower:Q",
-    y="Miles_per_Gallon:Q",
-    color="Origin:N",
+attaviz.bar(
+    source,
+    category="site",
+    value="yield",
+    title="Barley yield by site",
+    subtitle="Mean yield across varieties and years",
+)
+```
+
+Factories handle recurring editorial choices such as sorting, labels,
+tooltips, highlighting, number formatting, and responsive width. They return
+ordinary Altair charts, so normal Altair customization remains available.
+
+```python
+chart = attaviz.bar(
+    source,
+    category="site",
+    value="yield",
+    highlight="Morris",
+)
+
+chart = attaviz.frame(
+    chart,
+    description="Horizontal bars comparing mean barley yield at six sites.",
+    source="Minnesota agricultural experiment stations",
 )
 ```
 
@@ -39,4 +64,5 @@ To size a single chart without switching the global theme:
 chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
 ```
 
-See the [Gallery](../gallery.ipynb) for a full tour of chart types.
+See the [chart factory reference](../reference/charts.qmd) and
+[Gallery](../gallery.qmd) for the complete interface.
