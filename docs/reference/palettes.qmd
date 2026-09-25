@@ -59,7 +59,7 @@ attaviz.BINARY            # two-color pair
 
 ## Sequential
 
-Six monochrome ramps. Use with `alt.Scale(range=...)`:
+Five monochrome ramps. Use with `alt.Scale(range=...)`:
 
 ```python
 alt.Chart(data).mark_rect().encode(

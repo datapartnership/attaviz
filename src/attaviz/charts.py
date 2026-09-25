@@ -16,6 +16,7 @@ from .formatting import d3_date_format, format_number, vega_scale_labelExpr
 from .theme import DEFAULT_DIMENSIONS, FONT, FONT_WEIGHT_REGULAR, SPACING, TYPOGRAPHY
 
 _FORMATS = {"auto", "integer", "decimal", "percent", "currency"}
+_DATE_FORMATS = {"day", "month", "month_year", "quarter", "year", "fiscal_year"}
 _POSITIONS = {"above", "below", "left", "right"}
 
 
@@ -282,10 +283,11 @@ def bar(
 
 def _line_x(source: pd.DataFrame, field: str, date_format: str):
     if is_datetime64_any_dtype(source[field]):
-        fmt = d3_date_format("month_year") if date_format == "auto" else date_format
-        return "temporal", alt.Axis(format=fmt)
+        selected = "month_year" if date_format == "auto" else date_format
+        fmt = d3_date_format(selected) if selected in _DATE_FORMATS else selected
+        return "temporal", alt.Axis(format=fmt), fmt
     if is_numeric_dtype(source[field]):
-        return "quantitative", alt.Axis()
+        return "quantitative", alt.Axis(), None
     raise TypeError(f"line x column {field!r} must be numeric or temporal")
 
 
@@ -337,7 +339,7 @@ def line(
     _numeric(source, y)
     required = [x] + ([series] if series else [])
     source = _drop_missing(source, required)
-    x_type, x_axis = _line_x(source, x, date_format)
+    x_type, x_axis, x_format = _line_x(source, x, date_format)
 
     keys = [x] + ([series] if series else [])
     duplicates = source.duplicated(keys, keep=False)
@@ -361,7 +363,14 @@ def line(
     }
     if series:
         _warn_many_series(source, series)
-        encoding["color"] = alt.Color(series, type="nominal", title=None)
+        show_end_labels = end_labels and source[series].nunique() <= 5
+        encoding["color"] = alt.Color(
+            series,
+            type="nominal",
+            title=None,
+            legend=None if show_end_labels else alt.Undefined,
+        )
+        encoding["tooltip"] = tooltip_value
         if selected:
             encoding["opacity"] = alt.condition(
                 alt.FieldOneOfPredicate(field=series, oneOf=selected),
@@ -375,11 +384,10 @@ def line(
     if series:
         from .interactions import add_hover
 
-        marks: alt.Chart | alt.LayerChart = add_hover(main, x=x)
+        marks: alt.Chart | alt.LayerChart = add_hover(main, x=x, x_format=x_format)
         if points:
             marks = marks + point_marks
-        series_count = source[series].nunique()
-        if end_labels and series_count <= 5:
+        if show_end_labels:
             ends = (
                 source.dropna(subset=[y])
                 .sort_values(x)
@@ -482,6 +490,9 @@ def scatter(
     points = alt.Chart(source).mark_circle(size=80).encode(**encoding, tooltip=tooltips)
     chart: alt.Chart | alt.LayerChart = points
     if selected and label:
+        highlighted_points = points.transform_filter(
+            alt.FieldOneOfPredicate(field=label, oneOf=selected)
+        )
         labels = (
             alt.Chart(source)
             .transform_filter(alt.FieldOneOfPredicate(field=label, oneOf=selected))
@@ -493,7 +504,7 @@ def scatter(
                 color=alt.value(colors.TEXT),
             )
         )
-        chart = points + labels
+        chart = points + highlighted_points + labels
 
     return _properties(
         chart,
@@ -517,6 +528,7 @@ def _leaf_charts(chart, inherited_data=alt.Undefined):
 
 
 def _chart_context(chart):
+    contexts = {}
     for leaf, data in _leaf_charts(chart):
         encoding = getattr(leaf, "encoding", alt.Undefined)
         if encoding is alt.Undefined or not isinstance(data, pd.DataFrame):
@@ -527,7 +539,12 @@ def _chart_context(chart):
             continue
         x_dict, y_dict = x.to_dict(), y.to_dict()
         if "field" in x_dict and "field" in y_dict:
-            return data, x_dict, y_dict
+            key = (x_dict["field"], y_dict["field"])
+            contexts.setdefault(key, (data, x_dict, y_dict))
+    if len(contexts) == 1:
+        return next(iter(contexts.values()))
+    if len(contexts) > 1:
+        raise TypeError("helper requires an unambiguous pair of x and y fields")
     raise TypeError("helper requires a chart with in-memory x and y field encodings")
 
 

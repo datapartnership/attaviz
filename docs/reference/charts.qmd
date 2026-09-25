@@ -11,12 +11,41 @@ import attaviz
 attaviz.enable()
 ```
 
-Every factory returns an ordinary Altair chart. Use Altair directly after the
-factory when a chart needs customization outside the common editorial path.
+Factories copy their input and return ordinary Altair chart objects. They never
+aggregate data silently. Customize the returned chart with Altair when you need
+behavior outside these interfaces.
 
 ## Bar
 
-`bar()` creates horizontal bars and requires one row per category.
+```python
+attaviz.bar(
+    data,
+    *,
+    category,
+    value,
+    title=None,
+    subtitle=None,
+    sort="descending",
+    labels=True,
+    highlight=None,
+    value_format="auto",
+    currency=None,
+    width="responsive",
+    height=None,
+)
+```
+
+`bar()` creates horizontal bars. `data` must be a non-empty pandas DataFrame;
+`category` and numeric `value` name columns in that frame. Each category must
+occur exactly once.
+
+- `sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
+  category sequence.
+- `labels` controls end labels.
+- `highlight` accepts one category or a sequence of categories.
+- `height` defaults to a value based on the category count.
+- Missing category or value rows are omitted with `UserWarning`.
+- Duplicate categories, unknown highlights, or invalid fields raise an error.
 
 ```python
 chart = attaviz.bar(
@@ -24,22 +53,46 @@ chart = attaviz.bar(
     category="country",
     value="population",
     title="Population by country",
-    subtitle="Millions, 2025",
-    sort="descending",
-    labels=True,
     highlight="Indonesia",
-    value_format="auto",
-    width="responsive",
 )
 ```
 
-`sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
-category sequence. Duplicate categories raise an error rather than being
-aggregated silently.
-
 ## Line
 
-`line()` creates one line or uses `series` to identify multiple lines.
+```python
+attaviz.line(
+    data,
+    *,
+    x,
+    y,
+    series=None,
+    title=None,
+    subtitle=None,
+    highlight=None,
+    end_labels=True,
+    points=False,
+    zero=False,
+    value_format="auto",
+    currency=None,
+    date_format="auto",
+    width="responsive",
+    height=None,
+)
+```
+
+`x` must be numeric or temporal and `y` must be numeric. Without `series`, each
+`x` value must be unique. With `series`, every `(x, series)` pair must be
+unique. Duplicate keys raise `ValueError` rather than being aggregated.
+
+- Missing `y` values create gaps.
+- `zero=True` includes zero in the y domain.
+- `highlight` requires `series` and accepts one series or a sequence.
+- Up to five series use end labels by default; larger charts use a legend.
+- `end_labels=False` always uses a legend.
+- `points=True` adds point marks.
+- `date_format` accepts `"auto"`, `"day"`, `"month"`, `"month_year"`,
+  `"year"`, or a D3 time-format string. Preformat quarter and fiscal-year
+  labels as strings.
 
 ```python
 chart = attaviz.line(
@@ -48,17 +101,42 @@ chart = attaviz.line(
     y="population",
     series="country",
     highlight="Indonesia",
-    end_labels=True,
-    points=False,
-    zero=False,
 )
 ```
 
-Each x value must be unique for a single line. With `series`, every
-`(x, series)` pair must be unique. Missing y values create visible gaps.
-Up to five series use end labels; larger charts use a legend.
-
 ## Scatter
+
+```python
+attaviz.scatter(
+    data,
+    *,
+    x,
+    y,
+    label=None,
+    series=None,
+    title=None,
+    subtitle=None,
+    highlight=None,
+    x_zero=False,
+    y_zero=False,
+    x_format="auto",
+    x_currency=None,
+    y_format="auto",
+    y_currency=None,
+    width="responsive",
+    height=None,
+)
+```
+
+`x` and `y` must name numeric columns. Each row is one observation; duplicate
+coordinates are valid.
+
+- `label` identifies observations in tooltips.
+- `series` groups observations by color.
+- `highlight` requires `label`; selected observations render above muted points
+  and receive direct labels.
+- `x_zero` and `y_zero` independently include zero in each axis domain.
+- Missing x or y rows are omitted with `UserWarning`.
 
 ```python
 chart = attaviz.scatter(
@@ -71,14 +149,11 @@ chart = attaviz.scatter(
 )
 ```
 
-`label` identifies observations in tooltips and supplies direct labels for
-highlighted points. `series` groups observations by color.
+## Number formats and dimensions
 
-## Formats and dimensions
-
-Number formats accept `"auto"`, `"integer"`, `"decimal"`, `"percent"`,
-`"currency"`, or a D3 number format string. Currency formatting requires an
-ISO code:
+Number-format arguments accept `"auto"`, `"integer"`, `"decimal"`,
+`"percent"`, `"currency"`, or a D3 number-format string. Currency formatting
+requires a code and rejects a code supplied with any other format:
 
 ```python
 attaviz.bar(
@@ -91,56 +166,82 @@ attaviz.bar(
 ```
 
 The default `width="responsive"` fills the parent HTML container. Pass a
-numeric width for deterministic static exports. `frame()` resolves a responsive
-chart to the theme's 600 px publication width because Vega-Lite does not
-reliably support container sizing inside vertical compositions.
+positive numeric width for deterministic static exports. Heights must also be
+positive. `frame()` resolves responsive width to the theme's 600 px publication
+width because Vega-Lite does not reliably support container sizing inside
+vertical compositions.
 
 ## Annotations and references
 
 ```python
-chart = attaviz.add_annotation(
+attaviz.add_annotation(
     chart,
-    x=2020,
-    y=275,
-    text="Population passed 275 million",
+    *,
+    x,
+    y,
+    text,
     position="above",
+    offset=8,
+    marker=True,
 )
 
-chart = attaviz.add_reference_line(
-    chart,
-    value=300,
-    axis="y",
-    label="Projection",
-)
+attaviz.add_reference_line(chart, *, value, axis="y", label=None)
 
-chart = attaviz.add_reference_range(
+attaviz.add_reference_range(
     chart,
-    start=250,
-    end=300,
+    *,
+    start,
+    end,
     axis="y",
-    label="Expected range",
+    label=None,
 )
 ```
 
-Annotations use data coordinates. Reference helpers require an explicit x or y
-axis and compose with all three factory outputs.
+Annotations use data coordinates. `position` accepts `"above"`, `"below"`,
+`"left"`, or `"right"`; `offset` is a non-negative pixel distance. Reference
+helpers require `axis="x"` or `axis="y"`. Values outside the observed domain
+produce `UserWarning`, and a range with `start > end` raises `ValueError`.
+
+The helpers compose with all three factory outputs. A custom layered chart must
+have one unambiguous pair of in-memory x and y field encodings.
+
+## Hover for custom Altair lines
+
+Factories add their own hover behavior. Use `add_hover()` for a custom line
+chart:
+
+```python
+attaviz.add_hover(
+    chart,
+    x,
+    *,
+    format=",.2f",
+    x_format=None,
+    rule_color=attaviz.GREY_400,
+)
+```
+
+The helper supports either one long-form chart with a color field or a layered
+wide-form chart with one y field per layer. It requires in-memory pandas data.
+`format` and `x_format` are D3 format strings. Unsupported chart shapes raise
+`ValueError` rather than producing an inaccurate tooltip.
 
 ## Publication frame
 
-Apply `frame()` last to add accessibility metadata and publication details:
-
 ```python
-chart = attaviz.frame(
+attaviz.frame(
     chart,
-    description="A line chart showing population growth from 2010 to 2025.",
-    source="World Bank",
-    source_url="https://data.worldbank.org/",
-    note="2025 values are estimates.",
-    byline="Data team",
+    *,
+    description,
+    source=None,
+    source_url=None,
+    note=None,
+    byline=None,
 )
 ```
 
-`description` is required and is exposed as Vega-Lite accessibility metadata.
-The other fields are optional and appear beneath the chart, aligned with its
-title. `source_url` is retained in Vega-Lite `usermeta` for host integrations;
-native Vega-Lite titles do not support hyperlinks.
+Apply `frame()` last. The required non-empty `description` becomes Vega-Lite
+accessibility metadata and is not displayed as chart text. `note`, `source`, and
+`byline` render below the chart in that order. `source_url` requires `source`
+and is retained in `usermeta` for host integrations because native Vega-Lite
+titles do not support hyperlinks.

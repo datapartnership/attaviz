@@ -19,7 +19,8 @@ def test_import_and_enable():
 
 
 def test_themes_registered():
-    registered = set(alt.themes.names())
+    registry = alt.theme if hasattr(alt, "theme") else alt.themes
+    registered = set(registry.names())
     assert {"wbg", "wbg-small", "wbg-medium", "wbg-large"} <= registered
 
 

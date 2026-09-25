@@ -1,6 +1,6 @@
 # Opinionated chart factories
 
-Status: approved for implementation
+Status: implemented
 
 This document defines Attaviz's first opinionated chart interface. The goal is
 to produce publication-ready editorial charts from a pandas DataFrame and a few
@@ -235,7 +235,9 @@ attaviz.add_reference_range(
 
 Number format arguments accept `"auto"`, `"integer"`, `"decimal"`,
 `"percent"`, `"currency"`, or a D3 number format string. Date format arguments
-accept `"auto"`, the existing Attaviz date presets, or a D3 date format string.
+accept `"auto"`, the `"day"`, `"month"`, `"month_year"`, and `"year"` Attaviz
+presets, or a D3 date format string. Quarter and fiscal-year labels must be
+preformatted because D3 has no equivalent time-format directives.
 
 Selecting `"currency"` requires the corresponding ISO 4217 currency code:
 
@@ -325,4 +327,3 @@ follow-up release.
 - Static exports are deterministic when given numeric dimensions.
 - `frame()` always includes an accessibility description.
 - The gallery and documentation demonstrate the complete public interface.
-

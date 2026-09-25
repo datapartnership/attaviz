@@ -41,8 +41,16 @@ Clone and install the dev environment:
 ```bash
 git clone https://github.com/datapartnership/attaviz.git
 cd attaviz
-uv sync --dev
+uv sync --all-groups
 ```
 
-The `dev` dependency group adds Jupyter, pandas, `vega-datasets`, pytest, and
-ruff so you can run the tests and the gallery notebook locally.
+Run the project checks:
+
+```bash
+uv run pytest -q
+uv run ruff check .
+uv run ruff format --check .
+```
+
+Install [Quarto](https://quarto.org/docs/get-started/) separately, then render
+the documentation with `quarto render docs`.

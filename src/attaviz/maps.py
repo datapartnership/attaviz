@@ -12,7 +12,7 @@ import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 
 from . import colors
-from .charts import _format, _title, _width
+from .charts import _FORMATS, _format, _title, _validate_highlight, _width
 
 _MEANINGS = {
     "neutral": colors.SEQ_BLUE,
@@ -34,7 +34,7 @@ def _geopandas():
         import geopandas as gpd
     except ImportError as exc:  # pragma: no cover - exercised without the maps extra
         raise ImportError(
-            "choropleth() requires the 'maps' extra: pip install \"attaviz[maps]\""
+            "choropleth() requires the 'maps' extra; reinstall Attaviz with map support"
         ) from exc
     return gpd
 
@@ -127,9 +127,15 @@ def _domain(values: pd.Series, domain, meaning: str) -> list[float]:
 def _palette(selected, meaning: str) -> list[str]:
     if meaning not in _MEANINGS:
         raise ValueError(f"meaning must be one of {sorted(_MEANINGS)}")
+    if selected is not None and (
+        isinstance(selected, str) or not isinstance(selected, Sequence)
+    ):
+        raise TypeError("palette must be a sequence of colors")
     result = list(_MEANINGS[meaning] if selected is None else selected)
-    if not result:
-        raise ValueError("palette must contain at least one color")
+    if len(result) < 2:
+        raise ValueError("palette must contain at least two colors")
+    if any(not isinstance(color, str) or not color.strip() for color in result):
+        raise TypeError("palette colors must be non-empty strings")
     return result
 
 
@@ -154,7 +160,7 @@ def choropleth(
     subtitle: str | None = None,
     meaning: str = "neutral",
     classification: str = "continuous",
-    classes: int = 5,
+    classes: int | None = None,
     breaks: Sequence[float] | None = None,
     domain: Sequence[float] | None = None,
     palette: Sequence[str] | None = None,
@@ -165,12 +171,12 @@ def choropleth(
     projection: str = "equalEarth",
     width: int | Literal["responsive"] = 600,
     height: int = 400,
-) -> alt.Chart:
+) -> alt.LayerChart:
     """Create a publication-ready polygon choropleth."""
     source = _map_data(geodata, value, label)
     if classification not in _CLASSIFICATIONS:
         raise ValueError(f"classification must be one of {sorted(_CLASSIFICATIONS)}")
-    if classification not in {"equal_interval", "quantile"} and classes != 5:
+    if classification not in {"equal_interval", "quantile"} and classes is not None:
         raise ValueError("classes may only be used with equal_interval or quantile")
     if not isinstance(height, int) or height <= 0:
         raise ValueError("height must be a positive integer")
@@ -179,6 +185,7 @@ def choropleth(
     if missing:
         raise ValueError(f"geodata is missing tooltip column(s): {', '.join(missing)}")
 
+    selected_palette = _palette(palette, meaning)
     values = source[value].dropna()
     if meaning != "change" and not values.empty and values.min() < 0 < values.max():
         warnings.warn(
@@ -193,17 +200,21 @@ def choropleth(
             "change data lies on only one side of zero", UserWarning, stacklevel=2
         )
 
-    selected_palette = _palette(palette, meaning)
     effective_domain = _domain(source[value], domain, meaning)
     distinct = source[value].nunique(dropna=True)
     if classification in {"equal_interval", "quantile"}:
+        classes = 5 if classes is None else classes
         if not isinstance(classes, int) or classes < 2:
             raise ValueError("classes must be an integer of at least two")
         if classes > distinct:
             raise ValueError("classes cannot exceed distinct non-missing values")
         scale = alt.Scale(
             type="quantize" if classification == "equal_interval" else "quantile",
-            domain=effective_domain,
+            domain=(
+                effective_domain
+                if classification == "equal_interval"
+                else values.tolist()
+            ),
             range=_sample_palette(selected_palette, classes),
         )
         if breaks is not None:
@@ -233,20 +244,18 @@ def choropleth(
             range=selected_palette,
         )
 
-    selected = (
-        []
-        if highlight is None
-        else ([highlight] if isinstance(highlight, str) else list(highlight))
-    )
-    unknown = [item for item in selected if item not in set(source[label])]
-    if unknown:
-        raise ValueError(f"unknown highlight value(s) for {label!r}: {unknown}")
+    selected = _validate_highlight(source, label, highlight)
 
     formatted, axis, formatted_tooltip, _, formatted_field = _format(
         source, value, value_format, currency
     )
     formatted.loc[formatted[value].isna(), formatted_field] = "No data"
     value_title = value_label or _humanize(value)
+    custom_format = value_format not in _FORMATS
+    if custom_format:
+        formatted_tooltip = alt.Tooltip(
+            formatted_field, type="nominal", title=value_title
+        )
     formatted_tooltip.title = value_title
     tooltips = [
         alt.Tooltip(label, type="nominal", title=_humanize(label)),
@@ -301,6 +310,15 @@ def choropleth(
         else alt.value(0.5)
     )
     base = alt.Chart(formatted)
+    if custom_format:
+        base = base.transform_calculate(
+            **{
+                formatted_field: (
+                    f"isValid(datum[{value!r}]) "
+                    f"? format(datum[{value!r}], {value_format!r}) : 'No data'"
+                )
+            }
+        )
     no_data = base.mark_geoshape(fill=colors.NO_DATA)
     values_layer = (
         base.transform_filter(f"isValid(datum[{value!r}])")
@@ -313,6 +331,17 @@ def choropleth(
         tooltip=tooltips,
     )
     chart = no_data + values_layer + outlines
+    if selected:
+        highlighted_outlines = (
+            base.transform_filter(alt.FieldOneOfPredicate(field=label, oneOf=selected))
+            .mark_geoshape(
+                fillOpacity=0,
+                stroke=colors.SELECTION_PRIMARY,
+                strokeWidth=2,
+            )
+            .encode(tooltip=tooltips)
+        )
+        chart += highlighted_outlines
     props = {"width": _width(width), "height": height}
     title_value = _title(title, subtitle)
     if title_value is not None:

@@ -73,12 +73,46 @@ def test_line_serializes_multi_series_with_points_and_end_labels():
     spec = chart.to_dict()
     assert spec["width"] == "container"
     assert len(spec["layer"]) >= 3
+    assert spec["layer"][0]["encoding"]["color"]["legend"] is None
+
+
+def test_line_serializes_numeric_x_and_uses_selected_hover_format():
+    data = pd.DataFrame(
+        {
+            "year": [2020, 2021, 2020, 2021],
+            "country": ["A", "A", "B", "B"],
+            "rate": [0.1, 0.2, 0.3, 0.4],
+        }
+    )
+
+    spec = attaviz.line(
+        data,
+        x="year",
+        y="rate",
+        series="country",
+        value_format="percent",
+    ).to_dict()
+
+    hover = spec["layer"][1]
+    assert hover["encoding"]["tooltip"][0] == {
+        "field": "year",
+        "type": "quantitative",
+    }
+    assert hover["transform"][0]["value"] == "__attaviz_rate_label"
+
+
+def test_line_resolves_named_date_format():
+    data = pd.DataFrame(
+        {"date": pd.to_datetime(["2020-01-01", "2021-01-01"]), "value": [1, 2]}
+    )
+
+    spec = attaviz.line(data, x="date", y="value", date_format="year").to_dict()
+
+    assert spec["layer"][0]["encoding"]["x"]["axis"]["format"] == "%y"
 
 
 def test_line_rejects_duplicate_series_keys():
-    data = pd.DataFrame(
-        {"year": [2020, 2020], "country": ["A", "A"], "value": [1, 2]}
-    )
+    data = pd.DataFrame({"year": [2020, 2020], "country": ["A", "A"], "value": [1, 2]})
 
     with pytest.raises(ValueError, match="must be unique"):
         attaviz.line(data, x="year", y="value", series="country")
@@ -92,15 +126,32 @@ def test_scatter_highlight_requires_label():
 
 
 def test_scatter_and_composition_helpers_serialize():
-    data = pd.DataFrame(
-        {"x": [1, 2, 3], "y": [4, 6, 5], "name": ["A", "B", "C"]}
-    )
+    data = pd.DataFrame({"x": [1, 2, 3], "y": [4, 6, 5], "name": ["A", "B", "C"]})
     chart = attaviz.scatter(data, x="x", y="y", label="name", highlight="A")
     chart = attaviz.add_annotation(chart, x=1, y=4, text="Start")
     chart = attaviz.add_reference_line(chart, value=5, axis="y", label="Target")
     chart = attaviz.add_reference_range(chart, start=1.5, end=2.5, axis="x")
 
     assert "layer" in chart.to_dict()
+
+
+def test_scatter_renders_highlighted_points_above_muted_points():
+    data = pd.DataFrame({"x": [1, 1], "y": [2, 2], "name": ["highlighted", "other"]})
+
+    spec = attaviz.scatter(
+        data, x="x", y="y", label="name", highlight="highlighted"
+    ).to_dict()
+
+    assert spec["layer"][1]["transform"][0]["filter"]["oneOf"] == ["highlighted"]
+    assert spec["layer"][2]["mark"]["type"] == "text"
+
+
+def test_composition_helper_rejects_ambiguous_encodings():
+    first = attaviz.scatter(pd.DataFrame({"x": [1], "y": [2]}), x="x", y="y")
+    second = attaviz.scatter(pd.DataFrame({"a": [1], "b": [2]}), x="a", y="b")
+
+    with pytest.raises(TypeError, match="unambiguous"):
+        attaviz.add_annotation(first + second, x=1, y=2, text="Ambiguous")
 
 
 def test_reference_range_rejects_reversed_values():
@@ -135,9 +186,7 @@ def test_frame_requires_description_and_source_for_url():
 
 
 def test_framed_responsive_bar_keeps_full_width_and_hides_raw_axis_title():
-    data = pd.DataFrame(
-        {"country": ["Indonesia", "Thailand"], "gdp": [1.37e12, 515e9]}
-    )
+    data = pd.DataFrame({"country": ["Indonesia", "Thailand"], "gdp": [1.37e12, 515e9]})
     chart = attaviz.bar(
         data,
         category="country",

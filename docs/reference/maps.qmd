@@ -2,16 +2,47 @@
 title: "Maps"
 ---
 
-Install the optional map dependency before using `choropleth()`:
+Install the optional GeoPandas support before creating maps:
 
 ```bash
-pip install "attaviz[maps]"
+pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
 ```
 
 ## Choropleth
 
-Pass an already joined GeoDataFrame with polygon geometry, a known CRS, one
-numeric value column, and one unique label column:
+```python
+attaviz.choropleth(
+    geodata,
+    *,
+    value,
+    label,
+    value_label=None,
+    title=None,
+    subtitle=None,
+    meaning="neutral",
+    classification="continuous",
+    classes=None,
+    breaks=None,
+    domain=None,
+    palette=None,
+    highlight=None,
+    tooltip=None,
+    value_format="auto",
+    currency=None,
+    projection="equalEarth",
+    width=600,
+    height=400,
+)
+```
+
+Pass an already joined, non-empty GeoDataFrame. `value` names a numeric column;
+`label` names a complete, unique identifier column. The active geometry must
+contain valid polygons or multipolygons and have a known CRS.
+
+Attaviz reprojects a copy to WGS84 when needed. It never joins, aggregates, or
+mutates geographic data. Missing values remain visible in the `NO_DATA` color.
+Missing or invalid geometry errors name the affected regions. Duplicate labels,
+non-numeric values, infinite values, and an unknown CRS also raise errors.
 
 ```python
 chart = attaviz.choropleth(
@@ -22,7 +53,6 @@ chart = attaviz.choropleth(
     value_format="percent",
     meaning="higher_is_worse",
     classification="quantile",
-    classes=5,
     highlight="Central",
     title="Poverty rates vary across regions",
 )
@@ -30,25 +60,51 @@ chart = attaviz.choropleth(
 
 Use rates, shares, densities, or normalized indices for area-based color maps.
 Raw totals often reflect region size or population more than the phenomenon
-being mapped.
+being mapped. You remain responsible for boundary selection and disputed-area
+policy; Attaviz does not bundle boundaries.
 
-Attaviz reprojects known coordinate systems to WGS84 on a copy. It rejects
-missing CRS information, invalid or non-polygon geometry, duplicate labels,
-non-numeric values, and infinite values. Missing values remain visible in the
-`NO_DATA` color.
+## Content and tooltips
 
-## Color meaning and classification
+- `value_label` supplies the legend and value-tooltip heading. If omitted, the
+  value column name is humanized.
+- The label and formatted value are always the first two tooltip fields.
+- `tooltip` accepts a sequence of additional column names.
+- Missing values display “No data”.
+- `highlight` accepts one label or a sequence. Unknown labels raise an error.
+  Highlighting strengthens borders without changing data colors or the scale.
 
-`meaning` accepts `"neutral"`, `"higher_is_better"`, `"higher_is_worse"`, or
-`"change"`. Change maps use a symmetric domain around zero unless `domain` is
-provided explicitly.
+## Color meaning
 
-`classification` accepts:
+`meaning` selects the semantic palette:
 
-- `"continuous"` (default)
-- `"equal_interval"` with `classes`
-- `"quantile"` with `classes`
-- `"custom"` with strictly increasing `breaks`
+| Value | Use |
+|---|---|
+| `"neutral"` | Magnitude without good/bad meaning |
+| `"higher_is_better"` | Larger values indicate improvement |
+| `"higher_is_worse"` | Larger values indicate deterioration |
+| `"change"` | Negative-to-positive change around zero |
+
+Change maps use a symmetric domain around zero unless you provide `domain`.
+Sequential data crossing zero and change data lying on only one side of zero
+produce `UserWarning` because the map remains valid but deserves review.
+
+`palette` accepts a sequence containing at least two non-empty CSS color
+strings and overrides the semantic palette.
+
+## Classification
+
+| Value | Additional argument | Behavior |
+|---|---|---|
+| `"continuous"` | none | Continuous linear scale |
+| `"equal_interval"` | optional `classes` | Equal-width ranges |
+| `"quantile"` | optional `classes` | Approximately equal observations per class |
+| `"custom"` | required `breaks` | Explicit threshold boundaries |
+
+Equal-interval and quantile maps default to five classes. `classes` must be at
+least two and cannot exceed the number of distinct values or available colors.
+It is rejected for continuous and custom scales. `breaks` must be finite,
+strictly increasing, within the effective domain, and is rejected outside a
+custom classification.
 
 ```python
 custom = attaviz.choropleth(
@@ -61,22 +117,40 @@ custom = attaviz.choropleth(
 )
 ```
 
-Use `palette` for an explicit color sequence and `domain=(minimum, maximum)`
-for a fixed comparable scale. Currency formatting requires a currency code.
+## Domain, formats, and dimensions
+
+`domain=(minimum, maximum)` fixes the extent for continuous, equal-interval,
+and custom scales. Both values must be finite, ordered, and include every
+observed value. A change domain must also include zero. Quantile boundaries are
+always derived from the observed distribution; use another classification when
+multiple maps must share thresholds.
+
+`value_format` accepts the same presets and D3 strings as chart factories.
+Currency formatting requires `currency="CODE"` and rejects a currency supplied
+with any other format.
+
+The default size is 600 × 400 px. `width` accepts a positive integer or
+`"responsive"`; `height` accepts a positive integer. `projection` accepts a
+Vega-Lite projection name and defaults to `"equalEarth"`. Maps with more than
+5,000 polygons produce a performance warning.
 
 ## Map annotations
 
 ```python
-chart = attaviz.add_map_annotation(
+attaviz.add_map_annotation(
     chart,
-    longitude=106.8,
-    latitude=-6.2,
-    text="Jakarta",
+    *,
+    longitude,
+    latitude,
+    text,
     position="above",
+    offset=8,
     marker=True,
 )
 ```
 
-Positions are `"above"`, `"below"`, `"left"`, and `"right"`. Invoke the
-helper repeatedly for multiple labels. Coordinates use WGS84 longitude and
-latitude; coordinates outside the mapped bounds produce a warning.
+Coordinates use WGS84 longitude and latitude. Longitude must fall within
+`[-180, 180]` and latitude within `[-90, 90]`. `position` accepts `"above"`,
+`"below"`, `"left"`, or `"right"`; `offset` is a non-negative pixel distance.
+Coordinates outside the mapped bounds produce `UserWarning`. Call the helper
+repeatedly to add multiple annotations.

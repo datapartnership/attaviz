@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "attaviz"
 version = "0.1.0"
-description = "World Bank Group data visualization theme for Altair"
+description = "Publication-ready World Bank Group charts and maps for Altair"
+readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MPL-2.0"}
 dependencies = [

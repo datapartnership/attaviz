@@ -1,20 +1,26 @@
 ---
 title: "attaviz"
-subtitle: "World Bank Group data visualization theme for Altair"
+subtitle: "Publication-ready charts and maps for Altair"
 ---
 
-An [Altair](https://altair-viz.github.io/) theme implementing the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
+Attaviz provides Altair themes, opinionated chart factories, and choropleth maps
+based on the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
 ```python
+import pandas as pd
 import attaviz
 
 attaviz.enable()
+
+data = pd.DataFrame(
+    {"country": ["Indonesia", "Malaysia"], "population": [280, 35]}
+)
 
 chart = attaviz.bar(
     data,
     category="country",
     value="population",
-    title="Population by country",
+    title="Population by country (millions)",
 )
 ```
 
@@ -28,5 +34,6 @@ chart = attaviz.bar(
 
 - **[Theme](reference/theme.qmd)**: what the theme applies, size variants, and per-chart sizing.
 - **[Chart factories](reference/charts.qmd)**: opinionated bar, line, scatter, annotation, and publication helpers.
+- **[Maps](reference/maps.qmd)**: choropleth classification, color meaning, tooltips, and annotations.
 - **[Color palettes](reference/palettes.qmd)**: categorical, sequential, diverging, semantic, pillars, greys.
-- **[Formatting & helpers](reference/formatting.qmd)**: number/date formatting, captions, hover, selections.
+- **[Formatting & helpers](reference/formatting.qmd)**: number/date formatting, scaled axis labels, and captions.

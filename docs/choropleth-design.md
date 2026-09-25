@@ -1,6 +1,6 @@
 # Opinionated choropleth maps
 
-Status: approved for implementation
+Status: implemented
 
 This document defines Attaviz's first opinionated map interface. The module
 turns an already joined GeoDataFrame into a publication-ready choropleth while
@@ -32,15 +32,13 @@ maps = ["geopandas>=1.0"]
 Users install map support with:
 
 ```bash
-pip install "attaviz[maps]"
-# or
-uv add "attaviz[maps]"
+pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
 ```
 
 Calling a map function without GeoPandas installed raises an actionable error:
 
 ```text
-choropleth() requires the 'maps' extra: pip install "attaviz[maps]"
+choropleth() requires the 'maps' extra; reinstall Attaviz with map support
 ```
 
 ## Public interface
@@ -58,7 +56,7 @@ attaviz.choropleth(
     subtitle=None,
     meaning="neutral",
     classification="continuous",
-    classes=5,
+    classes=None,
     breaks=None,
     domain=None,
     palette=None,
@@ -169,6 +167,7 @@ colors.
 Classification rules:
 
 - `classes` applies only to `equal_interval` and `quantile`.
+- Omitting `classes` selects five classes for those two classifications.
 - `breaks` applies only to `custom`.
 - Custom breaks are numeric, finite, strictly increasing, and fall within the
   effective domain.

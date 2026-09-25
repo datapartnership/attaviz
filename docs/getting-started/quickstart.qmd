@@ -64,5 +64,6 @@ To size a single chart without switching the global theme:
 chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
 ```
 
-See the [chart factory reference](../reference/charts.qmd) and
-[Gallery](../gallery.qmd) for the complete interface.
+Next, read the [chart factory reference](../reference/charts.qmd),
+[map reference](../reference/maps.qmd), or browse the
+[gallery](../gallery.qmd).
