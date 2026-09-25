@@ -19,7 +19,8 @@ def test_import_and_enable():
 
 
 def test_themes_registered():
-    registered = set(alt.themes.names())
+    registry = alt.theme if hasattr(alt, "theme") else alt.themes
+    registered = set(registry.names())
     assert {"wbg", "wbg-small", "wbg-medium", "wbg-large"} <= registered
 
 
@@ -43,4 +44,4 @@ def test_d3_date_format_rejects_unsupported_styles(style):
 
 def test_format_number_scales():
     assert attaviz.format_number(1_234_567) == "1.2M"
-    assert attaviz.format_number(1_234_567_890, unit="bytes") == "1.2G"
+    assert attaviz.format_number(1_234_567_890, unit="bytes") == "1.2GB"

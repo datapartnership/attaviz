@@ -9,6 +9,7 @@ A visual showcase of common chart types with the WBG theme enabled.
 
 ```{python}
 import altair as alt
+import pandas as pd
 from vega_datasets import data
 
 import attaviz
@@ -16,7 +17,12 @@ import attaviz
 attaviz.enable()
 ```
 
-## Bar Chart
+# Theme examples
+
+These examples use Altair directly. Attaviz supplies the visual defaults while
+Altair supplies the chart specification.
+
+## Bar chart
 
 ```{python}
 source = data.barley()
@@ -34,7 +40,7 @@ alt.Chart(
 ).properties(width=500, height=300)
 ```
 
-## Line Chart
+## Line chart
 
 ```{python}
 source = data.stocks()
@@ -51,7 +57,7 @@ alt.Chart(
 ).properties(width=550, height=350)
 ```
 
-## Line Chart with Hover
+## Line chart with hover
 
 ```{python}
 source = data.stocks()
@@ -75,7 +81,7 @@ lines = (
 attaviz.add_hover(lines, x="date", format="$.2f")
 ```
 
-## Scatter Plot
+## Scatter plot
 
 ```{python}
 source = data.cars()
@@ -98,7 +104,7 @@ alt.Chart(
 ).properties(width=550, height=380)
 ```
 
-## Area Chart
+## Area chart
 
 ```{python}
 source = data.iowa_electricity()
@@ -133,6 +139,100 @@ alt.Chart(
 ).properties(width=500, height=250)
 ```
 
+# Opinionated factories
+
+These examples use Attaviz factories and composition helpers to handle common
+editorial decisions.
+
+## Opinionated bar with highlight and publication frame
+
+```{python}
+source = pd.DataFrame(
+    {
+        "country": ["Indonesia", "Philippines", "Vietnam", "Thailand", "Malaysia"],
+        "gdp": [1.37e12, 437e9, 430e9, 515e9, 400e9],
+    }
+)
+
+chart = attaviz.bar(
+    source,
+    category="country",
+    value="gdp",
+    title="Indonesia has Southeast Asia's largest economy",
+    subtitle="Current-price GDP, illustrative values",
+    highlight="Indonesia",
+    value_format="currency",
+    currency="USD",
+)
+
+attaviz.frame(
+    chart,
+    description="Horizontal bars comparing GDP in five Southeast Asian economies; Indonesia is highlighted.",
+    source="World Bank",
+    source_url="https://data.worldbank.org/",
+    note="Values are included for interface demonstration.",
+)
+```
+
+## Opinionated line with annotation and reference
+
+```{python}
+source = data.stocks().query("symbol in ['AAPL', 'MSFT', 'GOOG']")
+
+chart = attaviz.line(
+    source,
+    x="date",
+    y="price",
+    series="symbol",
+    title="Technology stocks followed different paths",
+    subtitle="Monthly closing price, 2000–2010",
+    highlight="AAPL",
+    width=650,
+)
+
+chart = attaviz.add_reference_line(
+    chart,
+    value=500,
+    axis="y",
+    label="500",
+)
+
+attaviz.add_annotation(
+    chart,
+    x=pd.Timestamp("2007-12-01"),
+    y=198.08,
+    text="Apple approached 200",
+    position="above",
+)
+```
+
+## Opinionated scatter with highlight and reference range
+
+```{python}
+source = data.cars().dropna(subset=["Horsepower", "Miles_per_Gallon", "Name"])
+
+chart = attaviz.scatter(
+    source,
+    x="Horsepower",
+    y="Miles_per_Gallon",
+    label="Name",
+    series="Origin",
+    highlight="honda civic",
+    title="More powerful cars tend to use more fuel",
+    subtitle="Horsepower and fuel economy",
+)
+
+attaviz.add_reference_range(
+    chart,
+    start=25,
+    end=35,
+    axis="y",
+    label="25–35 mpg",
+)
+```
+
+# More theme and utility examples
+
 ## Histogram
 
 ```{python}
@@ -151,7 +251,7 @@ alt.Chart(
 ).properties(width=550, height=300)
 ```
 
-## Diverging Color Scale
+## Diverging color scale
 
 ```{python}
 source = data.us_employment()
@@ -177,7 +277,7 @@ alt.Chart(
 ).properties(width=500, height=300)
 ```
 
-## Faceted Small Multiples
+## Faceted small multiples
 
 ```{python}
 source = data.iris()
@@ -200,7 +300,7 @@ alt.Chart(
 )
 ```
 
-## Title, Subtitle, and Caption
+## Title, subtitle, and caption
 
 ```{python}
 source = data.barley()
@@ -225,7 +325,7 @@ chart = (
 attaviz.add_caption(chart, "Source: Minnesota agricultural experiment stations, 1931–1932")
 ```
 
-## Formatted Axis Labels
+## Formatted axis labels
 
 ```{python}
 source = data.gapminder().query("year == 2005").nlargest(5, "pop")
@@ -247,40 +347,104 @@ alt.Chart(
 ).properties(width=500, height=250)
 ```
 
-## Choropleth Map
+# Maps
+
+Map factories handle geometry validation, projection, missing values,
+classification, legends, and tooltips.
+
+## Choropleth map
+
+```{python}
+import geopandas as gpd
+
+countries = gpd.read_file("data/southeast-asia.geojson")
+
+chart = attaviz.choropleth(
+    countries,
+    value="gdp_per_capita",
+    label="country",
+    value_label="GDP per capita (USD)",
+    meaning="higher_is_better",
+    classification="custom",
+    breaks=[3_000, 5_000, 10_000, 20_000],
+    value_format=",.0f",
+    highlight="Indonesia",
+    tooltip=["population"],
+    title="Income levels vary widely across Southeast Asia",
+    subtitle="GDP per capita, 2019 estimates",
+    projection="mercator",
+    width=700,
+    height=450,
+)
+
+attaviz.frame(
+    chart,
+    description="A choropleth of 2019 GDP per capita estimates across eleven Southeast Asian economies; Indonesia is highlighted.",
+    source="Natural Earth",
+    source_url="https://www.naturalearthdata.com/",
+    note="GDP per capita is calculated from Natural Earth's population and GDP estimates. Boundaries follow Natural Earth's de facto representation.",
+)
+```
+
+## Continuous choropleth with missing data and annotation
+
+```{python}
+continuous_countries = countries.copy()
+continuous_countries.loc[
+    continuous_countries["country"] == "Brunei", "gdp_per_capita"
+] = None
+
+chart = attaviz.choropleth(
+    continuous_countries,
+    value="gdp_per_capita",
+    label="country",
+    value_label="GDP per capita (USD)",
+    value_format=",.0f",
+    title="Missing values remain visible",
+    subtitle="Continuous scale with Brunei shown as no data",
+    projection="mercator",
+    width=700,
+    height=450,
+)
+
+attaviz.add_map_annotation(
+    chart,
+    longitude=106.8,
+    latitude=-6.2,
+    text="Jakarta",
+)
+```
+
+## Quantile change choropleth
+
+```{python}
+change_countries = countries.assign(
+    relative_income_change=(
+        countries["gdp_per_capita"] / countries["gdp_per_capita"].median() - 1
+    )
+)
+
+attaviz.choropleth(
+    change_countries,
+    value="relative_income_change",
+    label="country",
+    value_label="Difference from regional median",
+    meaning="change",
+    classification="quantile",
+    value_format="percent",
+    title="Income differs across the region",
+    subtitle="Difference from the regional median, grouped into five quantiles",
+    projection="mercator",
+    width=700,
+    height=450,
+)
+```
+
+## Point map
 
 ```{python}
 from vega_datasets import data as vega_data
 
-counties = alt.topo_feature(vega_data.us_10m.url, "counties")
-unemployment = vega_data.unemployment.url
-
-alt.Chart(
-    counties,
-    title=alt.Title(
-        "US Unemployment by County",
-        subtitle="Share of civilian labor force unemployed (2009)",
-    ),
-).mark_geoshape(stroke="white", strokeWidth=0.2).encode(
-    color=alt.Color(
-        "rate:Q",
-        scale=alt.Scale(range=attaviz.SEQ_BLUE),
-        title="Unemployment rate",
-        legend=alt.Legend(format=".0%"),
-    ),
-    tooltip=[
-        alt.Tooltip("id:N", title="FIPS"),
-        alt.Tooltip("rate:Q", title="Rate", format=".1%"),
-    ],
-).transform_lookup(
-    lookup="id",
-    from_=alt.LookupData(unemployment, "id", ["rate"]),
-).project(type="albersUsa").properties(width=600, height=360)
-```
-
-## Point Map
-
-```{python}
 states = alt.topo_feature(vega_data.us_10m.url, "states")
 airports = vega_data.airports.url
 
@@ -315,6 +479,8 @@ points = alt.Chart(airports).mark_circle(
 )
 ```
 
+# Formatting utility
+
 ## Auto-scaled with `vega_scale_labelExpr`
 
 ```{python}
@@ -337,4 +503,3 @@ alt.Chart(
     tooltip=alt.Tooltip("pop:Q", format=attaviz.d3_number_format(decimals=0))
 ).properties(width=500, height=250)
 ```
-

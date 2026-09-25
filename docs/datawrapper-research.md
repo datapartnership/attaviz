@@ -1,0 +1,38 @@
+# Making Attaviz feel more like Datawrapper
+
+Status: historical research. The implemented interfaces are documented in the
+chart and choropleth design documents.
+
+## Conclusion
+
+Yes. The highest-value part of the Datawrapper experience is not a new rendering engine; it is a strongly opinionated workflow around chart defaults. Attaviz already owns the right seam—an Altair theme—so it can plausibly remove most recurring styling work with a few presets and chart-specific helpers. Rebuilding Datawrapper's editor, publishing platform, or full accessibility layer is a different product and should not be the first goal.
+
+## What makes Datawrapper easy
+
+| Datawrapper convenience | Why it removes work | Fit on Altair/Vega-Lite |
+|---|---|---|
+| A four-step path: upload, check/describe, visualize, publish | Separates data validity, chart choice, refinement, and delivery; uploaded columns are visually typed before charting. [Datawrapper tutorial](https://www.datawrapper.de/academy/how-to-create-your-first-datawrapper-chart) | **Partial.** Attaviz can validate columns and warn about suspicious types, but a guided editor is an application, not a library feature. |
+| Useful defaults plus a small, chart-specific “Refine” surface | Users can change bar thickness, value visibility, color focus, number format, legend position, and similar decisions without knowing a grammar of graphics. [Datawrapper tutorial](https://www.datawrapper.de/academy/how-to-create-your-first-datawrapper-chart) | **Strong.** Thin `bar`, `line`, and `scatter` helpers can encode good defaults while returning ordinary `alt.Chart` objects. |
+| Themes automatically enforce house style | Themes lock in palettes, fonts, gridlines, backgrounds, headers/footers, and optional user freedom; they are applied automatically to new visualizations. [Datawrapper custom themes](https://www.datawrapper.de/custom-themes) | **Strong.** Altair themes are functions that add defaults to every chart, while Vega-Lite config covers axes, legends, marks, ranges, titles, fonts, formats, and views. [Altair themes](https://altair-viz.github.io/user_guide/customization.html#chart-themes), [Vega-Lite config](https://vega.github.io/vega-lite/docs/config.html) |
+| Annotation is a first-class step | Title, description, notes, byline, source, source URL, and alternative description have explicit fields and recommended purposes. [Datawrapper Annotate tab](https://www.datawrapper.de/academy/annotate-tab) | **Mixed.** Vega-Lite directly supports title/subtitle and rich text marks, but source/byline/note layout and downloadable-data links need an HTML wrapper or composed chart convention. [Vega-Lite titles](https://vega.github.io/vega-lite/docs/title.html), [Vega-Lite text](https://vega.github.io/vega-lite/docs/text.html) |
+| Direct labels, focus, and reference annotations | Datawrapper lets authors label series, emphasize selected elements while fading others, and add text, lines, arrows, circles, and highlighted ranges. [Grouped bar refinement](https://www.datawrapper.de/academy/customizing-your-grouped-bar-chart), [scatter annotations](https://www.datawrapper.de/academy/customizing-your-scatter-plot-annotate) | **Strong, except drag positioning.** Altair can layer text and rule/rect marks and use selections/conditions for emphasis. Small helpers can hide that composition; a freeform drag UI would require a separate editor. [Altair text marks](https://altair-viz.github.io/user_guide/marks/text.html), [Altair parameters](https://altair-viz.github.io/user_guide/interactions/parameters.html) |
+| Formatting and localization are defaults, not repeated manual tweaks | Output locale changes number separators, dates, built-in labels, and right-to-left alignment. [Datawrapper localization](https://www.datawrapper.de/localization) | **Partial.** Vega-Lite supports global number/time formats and locale configuration, so common locale presets are feasible; full RTL layout and translated surrounding UI belong to the host application. [Vega-Lite config](https://vega.github.io/vega-lite/docs/config.html) |
+| Mobile/tablet/desktop previews | Authors see whether labels or chart types fail at narrower widths before publishing. [Datawrapper tutorial](https://www.datawrapper.de/academy/how-to-create-your-first-datawrapper-chart) | **Partial.** Vega-Lite supports container-responsive width for single and layered views, but breakpoint-specific redesigns and preview chrome require a host page or notebook widget. [Vega-Lite sizing](https://vega.github.io/vega-lite/docs/size.html) |
+| Accessibility guardrails | Datawrapper asks for alternative text, exposes data downloads, warns about colorblind-confusable palettes, uses semantic markup, and supports keyboard navigation. [Datawrapper accessibility](https://www.datawrapper.de/accessibility) | **Partial.** Vega-Lite emits ARIA metadata and Attaviz can require/encourage descriptions and check palette contrast/confusion. Equivalent keyboard navigation, semantic HTML, and “Get the data” need rendering-layer work. [Vega-Lite config](https://vega.github.io/vega-lite/docs/config.html) |
+| One-click publishing and export | Published charts get responsive embeds/share links; the product also exposes PNG, PDF, SVG, GIF, and image-publishing workflows. [Datawrapper embedding/export docs](https://www.datawrapper.de/academy/category/exporting-charts) | **Partial.** Altair can save charts, but hosted publishing, stable URLs, CDN delivery, and CMS embeds are infrastructure rather than theme/library concerns. |
+
+## Smallest useful implementation
+
+1. **Polish the existing theme first.** Put all recurring typography, axes, gridlines, palette, legend, tooltip, number format, padding, and title defaults in the theme. This is the smallest change because Altair already applies themes globally.
+2. **Add only a few opinionated chart helpers.** Start with the common editorial forms—bar, line, dot/scatter—and accept semantic inputs such as `category`, `value`, `series`, `title`, and `subtitle`. Return normal Altair charts so users can override anything.
+3. **Add tiny composition helpers.** Direct labels, focus/highlight, annotations, reference lines, and reference ranges cover much of Datawrapper's chart-level polish using native Altair layers.
+4. **Add lightweight guardrails, not an editor.** Warn for common failure modes: unsorted bars, too many categories/colors, truncated labels, missing source/description, non-zero bar baselines, and colorblind-confusable palettes. Prefer warnings over silently rewriting data.
+5. **Provide one HTML “publication frame” only if needed.** It can place title/subtitle above and note/source/byline below the Vega-Lite view, set responsive width, and expose an optional data-download link. This fills the biggest gap that Vega-Lite config alone cannot.
+
+## Do not build yet
+
+- A browser-based drag-and-drop editor, chart archive, collaboration system, CDN publisher, or CMS integration.
+- A generic abstraction over every Vega-Lite chart type.
+- Automatic “smart chart selection” beyond narrow, explainable warnings.
+
+Those features become justified only if users need a no-code publishing product. For a Python library, the attainable target is **Datawrapper-like defaults and guardrails in a few lines of code**, not a clone of Datawrapper.

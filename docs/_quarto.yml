@@ -5,12 +5,11 @@ project:
     - "index.qmd"
     - "getting-started/*.qmd"
     - "reference/*.qmd"
-    - "about.qmd"
     - "gallery.qmd"
 
 website:
   title: "attaviz"
-  description: "World Bank Group data visualization theme for Altair"
+  description: "Publication-ready World Bank Group charts and maps for Altair"
   repo-url: https://github.com/datapartnership/attaviz
   repo-actions: [edit, issue]
   navbar:
@@ -26,6 +25,8 @@ website:
       - text: "Reference"
         menu:
           - reference/theme.qmd
+          - reference/charts.qmd
+          - reference/maps.qmd
           - reference/palettes.qmd
           - reference/formatting.qmd
     right:
@@ -41,3 +42,5 @@ format:
 
 execute:
   freeze: auto
+
+jupyter: python3

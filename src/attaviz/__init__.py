@@ -1,4 +1,4 @@
-"""World Bank Group data visualization theme for Altair.
+"""Publication-ready World Bank Group charts and maps for Altair.
 
 Usage::
 
@@ -83,6 +83,16 @@ from .theme import (  # noqa: F401
     wbg_theme,
 )
 from .interactions import add_hover  # noqa: F401
+from .charts import (  # noqa: F401
+    add_annotation,
+    add_reference_line,
+    add_reference_range,
+    bar,
+    frame,
+    line,
+    scatter,
+)
+from .maps import add_map_annotation, choropleth  # noqa: F401
 
 __all__ = [
     # Theme functions
@@ -103,6 +113,16 @@ __all__ = [
     # Caption and interaction helpers
     "add_caption",
     "add_hover",
+    # Opinionated chart factories and composition helpers
+    "bar",
+    "line",
+    "scatter",
+    "frame",
+    "add_annotation",
+    "add_reference_line",
+    "add_reference_range",
+    "choropleth",
+    "add_map_annotation",
     # Responsive sizing constants
     "SIZE_BREAKPOINTS",
     "TYPOGRAPHY",
@@ -146,11 +166,23 @@ __all__ = [
     "TEXT_SUBTLE",
 ]
 
-# Register theme variants with Altair on import
-alt.themes.register("wbg", wbg_theme)  # Default (medium)
-alt.themes.register("wbg-small", lambda: wbg_theme(size="small"))
-alt.themes.register("wbg-medium", lambda: wbg_theme(size="medium"))
-alt.themes.register("wbg-large", lambda: wbg_theme(size="large"))
+_THEME_SIZES = {
+    "wbg": "medium",
+    "wbg-small": "small",
+    "wbg-medium": "medium",
+    "wbg-large": "large",
+}
+
+# Altair 5.5 introduced the current theme registry; keep the fallback for the
+# package's Altair 5.0 minimum.
+if hasattr(alt, "theme"):
+    for _theme_name, _theme_size in _THEME_SIZES.items():
+        alt.theme.register(_theme_name, enable=False)(
+            lambda size=_theme_size: alt.theme.ThemeConfig(wbg_theme(size=size))
+        )
+else:  # pragma: no cover - exercised with Altair <5.5
+    for _theme_name, _theme_size in _THEME_SIZES.items():
+        alt.themes.register(_theme_name, lambda size=_theme_size: wbg_theme(size=size))
 
 
 def enable(size: Literal["small", "medium", "large"] = "medium") -> None:
@@ -169,7 +201,8 @@ def enable(size: Literal["small", "medium", "large"] = "medium") -> None:
     >>> attaviz.enable(size='large')  # Use large typography/spacing
     """
     theme_name = "wbg" if size == "medium" else f"wbg-{size}"
-    alt.themes.enable(theme_name)
+    registry = alt.theme if hasattr(alt, "theme") else alt.themes
+    registry.enable(theme_name)
 
 
 # ---------------------------------------------------------------------------
@@ -221,7 +254,11 @@ def add_caption(
     width = getattr(chart, "width", None)
     if not isinstance(width, int):
         if hasattr(chart, "to_dict"):
-            spec = chart.to_dict(format="vega") if alt.data_transformers.active == "vegafusion" else chart.to_dict()
+            spec = (
+                chart.to_dict(format="vega")
+                if alt.data_transformers.active == "vegafusion"
+                else chart.to_dict()
+            )
             width = spec.get("width", DEFAULT_DIMENSIONS["medium"][0])
             if not isinstance(width, int):
                 width = DEFAULT_DIMENSIONS["medium"][0]

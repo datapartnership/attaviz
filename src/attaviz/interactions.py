@@ -14,12 +14,12 @@ def _channel_dict(channel) -> dict:
     return channel.to_dict()
 
 
-def _x_tooltip_format(x_type: str | None, x_format: str | None) -> str | None:
+def _x_tooltip(x: str, x_type: str | None, x_format: str | None) -> alt.Tooltip:
     if x_format is not None:
-        return x_format
+        return alt.Tooltip(field=x, type=x_type, format=x_format)
     if x_type == "temporal":
-        return d3_date_format("month_year")
-    return None
+        return alt.Tooltip(field=x, type=x_type, format=d3_date_format("month_year"))
+    return alt.Tooltip(field=x, type=x_type)
 
 
 def add_hover(
@@ -149,19 +149,31 @@ def _add_hover_pivot(chart, x, nearest, format, x_format, rule_color):
     y_field = _channel_dict(chart.encoding.y)["field"]
     x_type = _channel_dict(chart.encoding.x).get("type")
 
+    value_field = y_field
+    value_type = "quantitative"
+    value_format = format
+    chart_tooltip = chart.encoding.tooltip
+    if chart_tooltip is not alt.Undefined:
+        tooltip_dict = _channel_dict(chart_tooltip)
+        if "field" in tooltip_dict:
+            value_field = tooltip_dict["field"]
+            value_type = tooltip_dict.get("type", value_type)
+            value_format = tooltip_dict.get("format")
+
     series = sorted(data[color_field].dropna().unique().tolist())
 
-    tooltip = [
-        alt.Tooltip(field=x, type=x_type, format=_x_tooltip_format(x_type, x_format))
-    ]
+    tooltip = [_x_tooltip(x, x_type, x_format)]
     tooltip += [
-        alt.Tooltip(field=name, type="quantitative", format=format) for name in series
+        alt.Tooltip(field=name, type=value_type, format=value_format)
+        if value_format is not None
+        else alt.Tooltip(field=name, type=value_type)
+        for name in series
     ]
 
     rule = (
         alt.Chart(data)
         .encode(x=chart.encoding.x)
-        .transform_pivot(color_field, value=y_field, groupby=[x])
+        .transform_pivot(color_field, value=value_field, groupby=[x])
         .mark_rule(color=rule_color)
         .encode(
             opacity=alt.condition(nearest, alt.value(0.3), alt.value(0)),
@@ -251,9 +263,7 @@ def _add_hover_layered(chart, x, nearest, format, x_format, rule_color):
 
     x_type = _channel_dict(chart.layer[0].encoding.x).get("type")
 
-    tooltip = [
-        alt.Tooltip(field=x, type=x_type, format=_x_tooltip_format(x_type, x_format))
-    ]
+    tooltip = [_x_tooltip(x, x_type, x_format)]
     tooltip += [
         alt.Tooltip(field=field, type="quantitative", format=format, title=title)
         for field, title in series

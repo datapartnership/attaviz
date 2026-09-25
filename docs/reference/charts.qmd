@@ -1,0 +1,247 @@
+---
+title: "Chart factories"
+---
+
+Attaviz factories turn summarized pandas DataFrames into publication-ready
+Altair charts. Enable the theme once before creating charts:
+
+```python
+import attaviz
+
+attaviz.enable()
+```
+
+Factories copy their input and return ordinary Altair chart objects. They never
+aggregate data silently. Customize the returned chart with Altair when you need
+behavior outside these interfaces.
+
+## Bar
+
+```python
+attaviz.bar(
+    data,
+    *,
+    category,
+    value,
+    title=None,
+    subtitle=None,
+    sort="descending",
+    labels=True,
+    highlight=None,
+    value_format="auto",
+    currency=None,
+    width="responsive",
+    height=None,
+)
+```
+
+`bar()` creates horizontal bars. `data` must be a non-empty pandas DataFrame;
+`category` and numeric `value` name columns in that frame. Each category must
+occur exactly once.
+
+- `sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
+  category sequence.
+- `labels` controls end labels.
+- `highlight` accepts one category or a sequence of categories.
+- `height` defaults to a value based on the category count.
+- Missing category or value rows are omitted with `UserWarning`.
+- Duplicate categories, unknown highlights, or invalid fields raise an error.
+
+```python
+chart = attaviz.bar(
+    data,
+    category="country",
+    value="population",
+    title="Population by country",
+    highlight="Indonesia",
+)
+```
+
+## Line
+
+```python
+attaviz.line(
+    data,
+    *,
+    x,
+    y,
+    series=None,
+    title=None,
+    subtitle=None,
+    highlight=None,
+    end_labels=True,
+    points=False,
+    zero=False,
+    value_format="auto",
+    currency=None,
+    date_format="auto",
+    width="responsive",
+    height=None,
+)
+```
+
+`x` must be numeric or temporal and `y` must be numeric. Without `series`, each
+`x` value must be unique. With `series`, every `(x, series)` pair must be
+unique. Duplicate keys raise `ValueError` rather than being aggregated.
+
+- Missing `y` values create gaps.
+- `zero=True` includes zero in the y domain.
+- `highlight` requires `series` and accepts one series or a sequence.
+- Up to five series use end labels by default; larger charts use a legend.
+- `end_labels=False` always uses a legend.
+- `points=True` adds point marks.
+- `date_format` accepts `"auto"`, `"day"`, `"month"`, `"month_year"`,
+  `"year"`, or a D3 time-format string. Preformat quarter and fiscal-year
+  labels as strings.
+
+```python
+chart = attaviz.line(
+    data,
+    x="year",
+    y="population",
+    series="country",
+    highlight="Indonesia",
+)
+```
+
+## Scatter
+
+```python
+attaviz.scatter(
+    data,
+    *,
+    x,
+    y,
+    label=None,
+    series=None,
+    title=None,
+    subtitle=None,
+    highlight=None,
+    x_zero=False,
+    y_zero=False,
+    x_format="auto",
+    x_currency=None,
+    y_format="auto",
+    y_currency=None,
+    width="responsive",
+    height=None,
+)
+```
+
+`x` and `y` must name numeric columns. Each row is one observation; duplicate
+coordinates are valid.
+
+- `label` identifies observations in tooltips.
+- `series` groups observations by color.
+- `highlight` requires `label`; selected observations render above muted points
+  and receive direct labels.
+- `x_zero` and `y_zero` independently include zero in each axis domain.
+- Missing x or y rows are omitted with `UserWarning`.
+
+```python
+chart = attaviz.scatter(
+    data,
+    x="income",
+    y="life_expectancy",
+    label="country",
+    series="region",
+    highlight=["Indonesia", "Malaysia"],
+)
+```
+
+## Number formats and dimensions
+
+Number-format arguments accept `"auto"`, `"integer"`, `"decimal"`,
+`"percent"`, `"currency"`, or a D3 number-format string. Currency formatting
+requires a code and rejects a code supplied with any other format:
+
+```python
+attaviz.bar(
+    data,
+    category="country",
+    value="gdp",
+    value_format="currency",
+    currency="USD",
+)
+```
+
+The default `width="responsive"` fills the parent HTML container. Pass a
+positive numeric width for deterministic static exports. Heights must also be
+positive. `frame()` resolves responsive width to the theme's 600 px publication
+width because Vega-Lite does not reliably support container sizing inside
+vertical compositions.
+
+## Annotations and references
+
+```python
+attaviz.add_annotation(
+    chart,
+    *,
+    x,
+    y,
+    text,
+    position="above",
+    offset=8,
+    marker=True,
+)
+
+attaviz.add_reference_line(chart, *, value, axis="y", label=None)
+
+attaviz.add_reference_range(
+    chart,
+    *,
+    start,
+    end,
+    axis="y",
+    label=None,
+)
+```
+
+Annotations use data coordinates. `position` accepts `"above"`, `"below"`,
+`"left"`, or `"right"`; `offset` is a non-negative pixel distance. Reference
+helpers require `axis="x"` or `axis="y"`. Values outside the observed domain
+produce `UserWarning`, and a range with `start > end` raises `ValueError`.
+
+The helpers compose with all three factory outputs. A custom layered chart must
+have one unambiguous pair of in-memory x and y field encodings.
+
+## Hover for custom Altair lines
+
+Factories add their own hover behavior. Use `add_hover()` for a custom line
+chart:
+
+```python
+attaviz.add_hover(
+    chart,
+    x,
+    *,
+    format=",.2f",
+    x_format=None,
+    rule_color=attaviz.GREY_400,
+)
+```
+
+The helper supports either one long-form chart with a color field or a layered
+wide-form chart with one y field per layer. It requires in-memory pandas data.
+`format` and `x_format` are D3 format strings. Unsupported chart shapes raise
+`ValueError` rather than producing an inaccurate tooltip.
+
+## Publication frame
+
+```python
+attaviz.frame(
+    chart,
+    *,
+    description,
+    source=None,
+    source_url=None,
+    note=None,
+    byline=None,
+)
+```
+
+Apply `frame()` last. The required non-empty `description` becomes Vega-Lite
+accessibility metadata and is not displayed as chart text. `note`, `source`, and
+`byline` render below the chart in that order. `source_url` requires `source`
+and is retained in `usermeta` for host integrations because native Vega-Lite
+titles do not support hyperlinks.

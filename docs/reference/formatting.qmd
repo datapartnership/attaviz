@@ -11,9 +11,9 @@ handling.
 ```{python}
 import attaviz
 print(attaviz.format_number(1234567))              # 1.2M
-print(attaviz.format_number(0.456, percent=True))  # 45.60%
-print(attaviz.format_number(50000, currency=True)) # $50K
-print(attaviz.format_number(1234567890, unit="bytes"))  # 1.2G
+print(attaviz.format_number(0.456, percent=True))  # 45.6%
+print(attaviz.format_number(50000, currency=True)) # $50.0K
+print(attaviz.format_number(1234567890, unit="bytes"))  # 1.2GB
 ```
 
 Key parameters:
@@ -42,6 +42,30 @@ D3 format strings don't support custom suffixes, so for K/M/B either
 pre-scale the data or indicate the scale in the axis title
 ("GDP (millions)").
 
+## Auto-scaled Altair axis labels
+
+`vega_scale_labelExpr()` returns a Vega expression that applies Attaviz K/M/B
+scaling to raw values in an Altair axis:
+
+```python
+import altair as alt
+
+axis = alt.Axis(labelExpr=attaviz.vega_scale_labelExpr())
+```
+
+```python
+attaviz.vega_scale_labelExpr(
+    *,
+    currency=False,
+    unit=None,
+    decimals="auto",
+)
+```
+
+Set `currency=True` for a dollar prefix, `unit` for a unit suffix, or `decimals`
+to an integer for fixed precision. This function returns an expression, not a D3
+format string; pass it to `labelExpr`, not `format`.
+
 ## Date formatting
 
 ```{python}
@@ -50,7 +74,7 @@ import attaviz
 d = date(2023, 1, 15)
 print(attaviz.format_date(d, style="month_year"))               # Jan-23
 print(attaviz.format_date(d, style="month_year", short=False))  # January 2023
-print(attaviz.format_date(d, style="quarter"))                  # Q1-23
+print(attaviz.format_date(d, style="quarter"))                  # 23Q1
 print(attaviz.format_date(d, style="fiscal_year"))              # FY23
 ```
 
@@ -75,11 +99,18 @@ Altair as strings, or use a Vega expression in the axis encoding.
 Attach a styled caption below a chart.
 
 ```python
-chart_with_caption = attaviz.add_caption(
+attaviz.add_caption(
     chart,
     "Source: World Bank Development Indicators, 2023",
+    *,
+    align="left",
 )
 ```
 
 - `align` — `"left"` (default, on-spec), `"center"`, or `"right"`.
 - Embed a newline (`\n`) in the text for multi-line captions.
+
+`add_caption()` remains available for compatibility. Prefer
+[`frame()`](charts.qmd#publication-frame) for new publication charts because it
+also requires an accessibility description and supports notes, sources, and a
+byline.
