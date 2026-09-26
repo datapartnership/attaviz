@@ -1,39 +1,69 @@
 ---
-title: "attaviz"
-subtitle: "Publication-ready charts and maps for Altair"
+title: ""
+pagetitle: "Attaviz documentation"
+description: "Build publication-ready charts and maps in Altair using World Bank visualization standards."
+toc: false
+page-layout: full
+css: homepage.css
 ---
 
-Attaviz provides Altair themes, opinionated chart factories, and choropleth maps
-based on the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
+# Attaviz documentation
 
-```python
-import pandas as pd
-import attaviz
+Build publication-ready charts and maps in Altair using the
+[World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
-attaviz.enable()
+## Get started
 
-data = pd.DataFrame(
-    {"country": ["Indonesia", "Malaysia"], "population": [280, 35]}
-)
+::: {.docs-links}
+::: {.docs-link}
+### [Install attaviz](getting-started/installation.qmd)
 
-chart = attaviz.bar(
-    data,
-    category="country",
-    value="population",
-    title="Population by country (millions)",
-)
-```
+Install the package and optional map dependencies.
+:::
 
-## Start here
+::: {.docs-link}
+### [Build your first chart](getting-started/quickstart.qmd)
 
-- **[Install](getting-started/installation.qmd)**
-- **[Quick start](getting-started/quickstart.qmd)**
-- **[Gallery](gallery.qmd)**
+Enable the theme and create a chart in a few lines of Python.
+:::
+
+::: {.docs-link}
+### [Browse the gallery](gallery.qmd)
+
+See working chart and map examples.
+:::
+:::
 
 ## Reference
 
-- **[Theme](reference/theme.qmd)**: what the theme applies, size variants, and per-chart sizing.
-- **[Chart factories](reference/charts.qmd)**: opinionated bar, line, scatter, annotation, and publication helpers.
-- **[Maps](reference/maps.qmd)**: choropleth classification, color meaning, tooltips, and annotations.
-- **[Color palettes](reference/palettes.qmd)**: categorical, sequential, diverging, semantic, pillars, greys.
-- **[Formatting & helpers](reference/formatting.qmd)**: number/date formatting, scaled axis labels, and captions.
+::: {.docs-links}
+::: {.docs-link}
+### [Theme](reference/theme.qmd)
+
+Typography, color, spacing, and chart sizing.
+:::
+
+::: {.docs-link}
+### [Charts](reference/charts.qmd)
+
+Bars, lines, scatter plots, annotations, and publication frames.
+:::
+
+::: {.docs-link}
+### [Maps](reference/maps.qmd)
+
+Choropleth classification, color, tooltips, and annotations.
+:::
+
+::: {.docs-link}
+### [Color palettes](reference/palettes.qmd)
+
+Categorical, sequential, diverging, and semantic palettes.
+:::
+
+::: {.docs-link}
+### [Formatting](reference/formatting.qmd)
+
+Number, date, axis, and caption helpers.
+:::
+:::
