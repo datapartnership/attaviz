@@ -12,32 +12,26 @@ website:
   description: "Publication-ready World Bank Group charts and maps for Altair"
   repo-url: https://github.com/datapartnership/attaviz
   repo-actions: [edit, issue]
-  sidebar:
-    style: docked
-    search: true
-    contents:
-      - text: "Overview"
+  navbar:
+    left:
+      - text: "Home"
         href: index.qmd
-      - section: "Get started"
-        contents:
-          - text: "Installation"
-            href: getting-started/installation.qmd
-          - text: "Quick start"
-            href: getting-started/quickstart.qmd
+      - text: "Getting started"
+        menu:
+          - getting-started/installation.qmd
+          - getting-started/quickstart.qmd
       - text: "Gallery"
         href: gallery.qmd
-      - section: "Reference"
-        contents:
-          - text: "Theme"
-            href: reference/theme.qmd
-          - text: "Charts"
-            href: reference/charts.qmd
-          - text: "Maps"
-            href: reference/maps.qmd
-          - text: "Color palettes"
-            href: reference/palettes.qmd
-          - text: "Formatting"
-            href: reference/formatting.qmd
+      - text: "Reference"
+        menu:
+          - reference/theme.qmd
+          - reference/charts.qmd
+          - reference/maps.qmd
+          - reference/palettes.qmd
+          - reference/formatting.qmd
+    right:
+      - icon: github
+        href: https://github.com/datapartnership/attaviz
 
 format:
   html:
