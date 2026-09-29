@@ -7,6 +7,7 @@ title: "Color palettes"
 import altair as alt
 import pandas as pd
 import attaviz
+from IPython.display import Markdown
 attaviz.enable()
 
 def swatch(colors, labels=None, height=40):
@@ -32,6 +33,22 @@ def swatch(colors, labels=None, height=40):
         )
         .properties(width=alt.Step(60), height=height)
     )
+
+def hex_table(*names):
+    """Render palettes as a Markdown table so the hex values exist as text."""
+    palettes = [getattr(attaviz, n) for n in names]
+    if len(names) > 1:  # equal-length ramps side by side
+        rows = ["| Step | " + " | ".join(f"`{n}`" for n in names) + " |",
+                "|---" * (len(names) + 1) + "|"]
+        rows += [f"| {i} | " + " | ".join(f"`{p[i]}`" for p in palettes) + " |"
+                 for i in range(len(palettes[0]))]
+    else:
+        pal = palettes[0]
+        items = pal.items() if isinstance(pal, dict) else enumerate(pal)
+        rows = ["| Key | Hex |", "|---|---|"]
+        rows += [f"| `{k}` | " + (", ".join(f"`{c}`" for c in v) if isinstance(v, list) else f"`{v}`") + " |"
+                 for k, v in items]
+    return Markdown("\n".join(rows))
 ```
 
 ## Categorical
@@ -43,12 +60,27 @@ The default 9-color palette used automatically when the theme is enabled.
 swatch(attaviz.CATEGORICAL)
 ```
 
+```{python}
+#| echo: false
+hex_table("CATEGORICAL")
+```
+
 An accessible text-contrast variant is available when categorical colors are
 applied to text rather than marks:
 
 ```{python}
 #| echo: false
 swatch(attaviz.CATEGORICAL_TEXT)
+```
+
+```{python}
+#| echo: false
+hex_table("CATEGORICAL_TEXT")
+```
+
+```{python}
+#| echo: false
+hex_table("BINARY")
 ```
 
 ```python
@@ -78,6 +110,11 @@ alt.vconcat(
 )
 ```
 
+```{python}
+#| echo: false
+hex_table("SEQ_BLUE", "SEQ_GREEN", "SEQ_PURPLE", "SEQ_YELLOW", "SEQ_RED")
+```
+
 Two semantic sequential ramps convey "good → bad" direction:
 
 ```{python}
@@ -86,6 +123,11 @@ alt.vconcat(
     swatch(attaviz.SEQ_BAD_TO_GOOD, labels=[f"{i}" for i in range(len(attaviz.SEQ_BAD_TO_GOOD))]).properties(title="SEQ_BAD_TO_GOOD (higher = better)"),
     swatch(attaviz.SEQ_GOOD_TO_BAD, labels=[f"{i}" for i in range(len(attaviz.SEQ_GOOD_TO_BAD))]).properties(title="SEQ_GOOD_TO_BAD (higher = worse)"),
 )
+```
+
+```{python}
+#| echo: false
+hex_table("SEQ_BAD_TO_GOOD", "SEQ_GOOD_TO_BAD")
 ```
 
 ## Diverging
@@ -111,6 +153,11 @@ alt.vconcat(
 )
 ```
 
+```{python}
+#| echo: false
+hex_table("DIV_DEFAULT", "DIV_NEUTRAL", "DIV_ALTERNATIVE")
+```
+
 ## Semantic palettes
 
 ### Regions
@@ -118,6 +165,25 @@ alt.vconcat(
 ```{python}
 #| echo: false
 swatch(attaviz.REGIONS)
+```
+
+```{python}
+#| echo: false
+hex_table("REGIONS")
+```
+
+Text variants:
+
+```{python}
+#| echo: false
+hex_table("REGIONS_TEXT")
+```
+
+Secondary shades:
+
+```{python}
+#| echo: false
+hex_table("REGIONS_SECONDARY")
 ```
 
 ```python
@@ -145,6 +211,11 @@ alt.Chart(data).mark_bar().encode(
 swatch(attaviz.INCOME)
 ```
 
+```{python}
+#| echo: false
+hex_table("INCOME")
+```
+
 ```python
 attaviz.INCOME       # dict: "HIC", "UMC", "LMC", "LIC" → hex
 attaviz.INCOME_LIST  # ordered list (HIC → LIC)
@@ -159,12 +230,27 @@ swatch(attaviz.GENDER)
 
 ```{python}
 #| echo: false
+hex_table("GENDER")
+```
+
+```{python}
+#| echo: false
 swatch(attaviz.URBANIZATION)
 ```
 
 ```{python}
 #| echo: false
+hex_table("URBANIZATION")
+```
+
+```{python}
+#| echo: false
 swatch(attaviz.AGE, labels=[f"age-{i}" for i in range(len(attaviz.AGE))])
+```
+
+```{python}
+#| echo: false
+hex_table("AGE")
 ```
 
 ```python
@@ -180,6 +266,11 @@ Institutional pillar colors.
 ```{python}
 #| echo: false
 swatch(attaviz.PILLARS)
+```
+
+```{python}
+#| echo: false
+hex_table("PILLARS")
 ```
 
 ```python
@@ -218,7 +309,7 @@ attaviz.REFERENCE            # "#8A969F" — reference line color
 attaviz.NO_DATA              # "#CED4DE" — missing-data fill
 attaviz.TOTAL                # "#163C6C" — total/aggregate color
 attaviz.SELECTION_PRIMARY    # "#0071BC" — active selection
-attaviz.SELECTION_SECONDARY  # companion selection color
-attaviz.TEXT                 # primary text color
-attaviz.TEXT_SUBTLE          # subtle text color (captions)
+attaviz.SELECTION_SECONDARY  # "#8963C1" — companion selection color
+attaviz.TEXT                 # "#111111" — primary text color
+attaviz.TEXT_SUBTLE          # "#666666" — subtle text color (captions)
 ```
