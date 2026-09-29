@@ -1,8 +1,8 @@
 ---
-title: "Chart factories"
+title: "Chart templates"
 ---
 
-Attaviz factories turn summarized pandas DataFrames into publication-ready
+Attaviz chart templates turn summarized pandas DataFrames into publication-ready
 Altair charts. Enable the theme once before creating charts:
 
 ```python
@@ -11,7 +11,7 @@ import attaviz
 attaviz.enable()
 ```
 
-Factories copy their input and return ordinary Altair chart objects. They never
+Templates copy their input and return ordinary Altair chart objects. They never
 aggregate data silently. Customize the returned chart with Altair when you need
 behavior outside these interfaces.
 
@@ -206,12 +206,12 @@ Annotations use data coordinates. `position` accepts `"above"`, `"below"`,
 helpers require `axis="x"` or `axis="y"`. Values outside the observed domain
 produce `UserWarning`, and a range with `start > end` raises `ValueError`.
 
-The helpers compose with all three factory outputs. A custom layered chart must
+The helpers compose with all three template outputs. A custom layered chart must
 have one unambiguous pair of in-memory x and y field encodings.
 
 ## Hover for custom Altair lines
 
-Factories add their own hover behavior. Use `add_hover()` for a custom line
+Templates add their own hover behavior. Use `add_hover()` for a custom line
 chart:
 
 ```python

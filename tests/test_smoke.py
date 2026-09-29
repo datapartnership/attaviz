@@ -45,3 +45,22 @@ def test_d3_date_format_rejects_unsupported_styles(style):
 def test_format_number_scales():
     assert attaviz.format_number(1_234_567) == "1.2M"
     assert attaviz.format_number(1_234_567_890, unit="bytes") == "1.2GB"
+
+
+def test_add_caption_pins_container_width():
+    # Vega-Lite ignores width="container" inside concat and squeezes the chart.
+    chart = alt.Chart().mark_bar().properties(width="container")
+    spec = attaviz.add_caption(chart, "Source: test").to_dict()
+    assert spec["vconcat"][0]["width"] == attaviz.DEFAULT_DIMENSIONS["medium"][0]
+
+
+def test_theme_stacks_bottom_legends():
+    attaviz.enable()
+    config = alt.Chart().mark_point().to_dict()["config"]
+    assert config["legend"]["layout"]["bottom"]["direction"] == "vertical"
+
+
+def test_theme_colors_single_series_marks():
+    attaviz.enable()
+    config = alt.Chart().mark_bar().to_dict()["config"]
+    assert config["mark"]["color"] == attaviz.CATEGORICAL[0]

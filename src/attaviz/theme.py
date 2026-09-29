@@ -180,6 +180,7 @@ def wbg_theme(
             # -- Default mark properties ------------------------------------
             "mark": {
                 "tooltip": True,
+                "color": colors.CATEGORICAL[0],
             },
             "point": {
                 "filled": True,
@@ -308,7 +309,9 @@ def wbg_theme(
                 "labelOffset": space["xs"],
                 "orient": "bottom",
                 "labelLimit": 200,
-                "titleLimit": 200,
+                "titleLimit": 400,  # bottom legends span the chart width
+                # Stack multiple bottom legends instead of placing them side by side.
+                "layout": {"bottom": {"direction": "vertical", "anchor": "start"}},
             },
             # -- View -------------------------------------------------------
             "view": {

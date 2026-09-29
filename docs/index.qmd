@@ -13,8 +13,7 @@ css: homepage.css
 
 Attaviz applies the
 [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/)
-to Altair. Run `attaviz.enable()` and every chart uses the theme. The chart and
-map functions add highlights, labels, and source notes.
+to Altair. Run `attaviz.enable()` and every chart uses the theme.
 
 [Read the quick start](getting-started/quickstart.qmd){.btn .btn-primary}
 [See the gallery](gallery.qmd){.btn .btn-outline-primary}
@@ -54,7 +53,7 @@ attaviz.frame(
 
 ::: {.docs-links}
 ::: {.docs-link}
-### [Install attaviz](getting-started/installation.qmd)
+### [Install Attaviz](getting-started/installation.qmd)
 
 Install the package and optional map dependencies.
 :::
@@ -82,7 +81,7 @@ Typography, color, spacing, and chart sizing.
 :::
 
 ::: {.docs-link}
-### [Charts](reference/charts.qmd)
+### [Chart templates](reference/charts.qmd)
 
 Bars, lines, scatter plots, annotations, and publication frames.
 :::

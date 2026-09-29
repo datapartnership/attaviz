@@ -2,10 +2,17 @@
 title: "Quick start"
 ---
 
-Enable the WBG theme once, then pass summarized data to an opinionated chart
-factory.
+Attaviz gives you two ways to make charts in the WBG style. Enable the theme,
+and every Altair chart you write uses it. Or use a chart template, which also
+makes common editorial choices for you.
+
+## Style any Altair chart
+
+Run `attaviz.enable()` once. Every Altair chart after that call uses WBG fonts,
+colors, and spacing. You do not need to change your chart code.
 
 ```{python}
+import altair as alt
 import attaviz
 import pandas as pd
 
@@ -18,6 +25,18 @@ source = pd.DataFrame(
     }
 )
 
+alt.Chart(source, title="Barley yield by site").mark_bar().encode(
+    x="yield:Q",
+    y="site:N",
+)
+```
+
+## Use a chart template
+
+A chart template builds a complete chart from summarized data. Pass your data
+to a template such as `attaviz.bar()`.
+
+```{python}
 attaviz.bar(
     source,
     category="site",
@@ -27,7 +46,7 @@ attaviz.bar(
 )
 ```
 
-Factories handle recurring editorial choices such as sorting, labels,
+Templates handle recurring editorial choices such as sorting, labels,
 tooltips, highlighting, number formatting, and responsive width. They return
 ordinary Altair charts, so normal Altair customization remains available.
 
@@ -65,6 +84,6 @@ To size a single chart without switching the global theme:
 chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
 ```
 
-Next, read the [chart factory reference](../reference/charts.qmd),
+Next, read the [chart template reference](../reference/charts.qmd),
 [map reference](../reference/maps.qmd), or browse the
 [gallery](../gallery.qmd).

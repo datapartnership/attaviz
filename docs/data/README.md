@@ -22,7 +22,7 @@ It drops null observations and reshapes the three indicator series into the
 `year`, `sector`, and `share` columns used by the stacked-area example.
 
 `wdi-electricity-access-2010-2023.csv` contains total electricity-access rates
-for Indonesia, Malaysia, the Philippines, Thailand, and Viet Nam in 2010 and
+for Cambodia, Indonesia, Lao PDR, Myanmar, and the Philippines in 2010 and
 2023. Percent values from the API are divided by 100 for Vega-Lite percent
 formatting. Null observations are omitted.
 
