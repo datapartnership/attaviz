@@ -168,7 +168,88 @@ def choropleth(
     width: int | Literal["responsive"] = 600,
     height: int = 400,
 ) -> alt.LayerChart:
-    """Create a publication-ready polygon choropleth."""
+    """Create a publication-ready polygon choropleth.
+
+    Pass geographic data that is already joined to its values. The function
+    never joins, aggregates, or changes the input; it reprojects a copy to
+    WGS84 when needed. Requires the ``maps`` extra (``pip install "attaviz[maps]"``).
+
+    Parameters
+    ----------
+    geodata
+        Non-empty GeoDataFrame with valid polygons or multipolygons and a known CRS.
+    value
+        Numeric column to map. Missing values are drawn in the ``NO_DATA`` color.
+        Prefer rates, shares, or densities over raw totals.
+    label
+        Column with a complete, unique name for each region.
+    value_label
+        Legend and tooltip heading. Defaults to a readable form of ``value``.
+    title, subtitle
+        Chart title and subtitle. A subtitle requires a title.
+    meaning
+        ``"neutral"`` (default), ``"higher_is_better"``, ``"higher_is_worse"``,
+        or ``"change"`` (diverging, centered on zero). Selects the palette.
+    classification
+        ``"continuous"`` (default), ``"equal_interval"``, ``"quantile"``, or
+        ``"custom"``.
+    classes
+        Number of classes for ``"equal_interval"`` and ``"quantile"``. Defaults to 5.
+    breaks
+        Strictly increasing class boundaries. Required for ``"custom"``.
+    domain
+        ``(minimum, maximum)`` scale extent. Must include every observed value,
+        and zero for ``"change"`` maps. Not used by ``"quantile"``.
+    palette
+        Sequence of at least two CSS colors. Overrides the ``meaning`` palette.
+    highlight
+        One label or a sequence of labels. Highlighting strengthens borders
+        and does not change the colors.
+    tooltip
+        Additional columns to show after the label and value.
+    value_format
+        ``"auto"``, ``"integer"``, ``"decimal"``, ``"percent"``, ``"currency"``,
+        or a D3 number-format string.
+    currency
+        Currency code such as ``"USD"``. Required with ``value_format="currency"``.
+    projection
+        Vega-Lite projection name. Defaults to ``"equalEarth"``.
+    width
+        Positive integer or ``"responsive"``. Defaults to 600.
+    height
+        Positive integer. Defaults to 400.
+
+    Returns
+    -------
+    alt.LayerChart
+        An ordinary Altair chart. Add markers with ``add_map_annotation()``.
+
+    Raises
+    ------
+    TypeError
+        If ``geodata`` is not a GeoDataFrame or ``value`` is not numeric.
+    ValueError
+        If labels are missing or duplicated, geometry is invalid, the CRS is
+        unknown, or classification arguments do not match.
+
+    Warns
+    -----
+    UserWarning
+        When ``meaning`` does not fit the data, or the map has more than
+        5,000 polygons.
+
+    Examples
+    --------
+    >>> chart = attaviz.choropleth(
+    ...     regions,
+    ...     value="poverty_rate",
+    ...     label="region_name",
+    ...     value_label="Poverty rate",
+    ...     value_format="percent",
+    ...     meaning="higher_is_worse",
+    ...     classification="quantile",
+    ... )
+    """
     source = _map_data(geodata, value, label)
     if classification not in _CLASSIFICATIONS:
         raise ValueError(f"classification must be one of {sorted(_CLASSIFICATIONS)}")
