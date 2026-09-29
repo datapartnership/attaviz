@@ -1,6 +1,7 @@
 ---
 title: ""
-pagetitle: "Attaviz documentation"
+pagetitle: "Attaviz"
+title-prefix: ""
 description: "Build publication-ready charts and maps in Altair using World Bank visualization standards."
 toc: false
 page-layout: full

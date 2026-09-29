@@ -31,9 +31,6 @@ website:
     right:
       - icon: github
         href: https://github.com/datapartnership/attaviz
-  page-footer:
-    left: "A [Development Data Partnership](https://datapartnership.org) project"
-    right: "[PyPI](https://pypi.org/project/attaviz/) · [GitHub](https://github.com/datapartnership/attaviz) · [License](https://github.com/datapartnership/attaviz/blob/main/LICENSE)"
 
 format:
   html:
