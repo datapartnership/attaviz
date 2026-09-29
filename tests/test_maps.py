@@ -45,8 +45,8 @@ def test_choropleth_serializes_missing_highlight_and_does_not_mutate():
 @pytest.mark.parametrize(
     ("classification", "kwargs", "scale_type", "range_size"),
     [
-        ("equal_interval", {"classes": 2}, "quantize", 2),
-        ("quantile", {"classes": 2}, "quantile", 2),
+        ("equal_interval", {"classes": 2}, "ordinal", 2),
+        ("quantile", {"classes": 2}, "ordinal", 2),
         ("custom", {"breaks": [0]}, "threshold", 2),
     ],
 )
@@ -64,7 +64,7 @@ def test_choropleth_classifications(classification, kwargs, scale_type, range_si
     assert len(scale["range"]) == range_size
 
 
-def test_quantile_uses_observed_values_as_scale_domain():
+def test_quantile_uses_observed_values_for_class_labels():
     data = gpd.GeoDataFrame(
         {"region": ["A", "B", "C", "D"], "rate": [0, 1, 2, 100]},
         geometry=[box(index, 0, index + 1, 1) for index in range(4)],
@@ -79,7 +79,64 @@ def test_quantile_uses_observed_values_as_scale_domain():
         classes=2,
     ).to_dict()
 
-    assert spec["layer"][1]["encoding"]["color"]["scale"]["domain"] == [0, 1, 2, 100]
+    assert spec["layer"][1]["encoding"]["color"]["scale"]["domain"] == [
+        "< 1.5",
+        "≥ 1.5",
+    ]
+
+
+def test_quantile_uses_readable_discrete_legend_labels():
+    data = gpd.GeoDataFrame(
+        {"region": list("ABCDEF"), "rate": [-0.53, -0.28, -0.1, 0.2, 0.8, 2.28]},
+        geometry=[box(index, 0, index + 1, 1) for index in range(6)],
+        crs="EPSG:4326",
+    )
+
+    spec = attaviz.choropleth(
+        data,
+        value="rate",
+        label="region",
+        meaning="change",
+        classification="quantile",
+        classes=3,
+        value_format="percent",
+    ).to_dict()
+
+    color = spec["layer"][1]["encoding"]["color"]
+    assert color["field"] == "__attaviz_class"
+    assert color["type"] == "nominal"
+    assert color["scale"]["domain"] == ["< −16%", "−16%–40%", "≥ 40%"]
+
+
+def test_discrete_classes_match_boundaries_and_reject_tied_quantiles():
+    boundary_data = gpd.GeoDataFrame(
+        {"region": ["A", "B", "C"], "rate": [0, 1, 2]},
+        geometry=[box(index, 0, index + 1, 1) for index in range(3)],
+        crs="EPSG:4326",
+    )
+    spec = attaviz.choropleth(
+        boundary_data,
+        value="rate",
+        label="region",
+        classification="equal_interval",
+        classes=2,
+    ).to_dict()
+    rows = next(iter(spec["datasets"].values()))
+    assert next(row for row in rows if row["rate"] == 1)["__attaviz_class"] == "≥ 1.0"
+
+    tied_data = gpd.GeoDataFrame(
+        {"region": list("ABCDEFGH"), "rate": [0, 0, 0, 0, 0, 1, 2, 3]},
+        geometry=[box(index, 0, index + 1, 1) for index in range(8)],
+        crs="EPSG:4326",
+    )
+    with pytest.raises(ValueError, match="tied values"):
+        attaviz.choropleth(
+            tied_data,
+            value="rate",
+            label="region",
+            classification="quantile",
+            classes=4,
+        )
 
 
 def test_choropleth_accepts_scalar_numeric_highlight():

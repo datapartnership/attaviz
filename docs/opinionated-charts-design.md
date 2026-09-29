@@ -29,6 +29,7 @@ attaviz.bar(
     *,
     category,
     value,
+    series=None,
     title=None,
     subtitle=None,
     sort="descending",
@@ -44,8 +45,8 @@ attaviz.bar(
 `bar()` always creates horizontal bars. A future `column()` may provide
 vertical bars explicitly; orientation is never guessed.
 
-- Each category must occur exactly once. Duplicate categories raise
-  `ValueError`.
+- Without `series`, each category must occur exactly once. With `series`, each
+  `(category, series)` pair must be unique and produces a stacked bar.
 - `value` must be numeric.
 - Bars start at zero and sort by value descending by default.
 - `sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
@@ -58,8 +59,7 @@ vertical bars explicitly; orientation is never guessed.
 - The default height is calculated from the category count to preserve legible
   bar thickness.
 
-Grouped bars, stacked bars, error bars, and automatic aggregation are outside
-this interface.
+Grouped bars, error bars, and automatic aggregation are outside this interface.
 
 ### Line chart
 

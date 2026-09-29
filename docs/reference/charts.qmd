@@ -23,6 +23,7 @@ attaviz.bar(
     *,
     category,
     value,
+    series=None,
     title=None,
     subtitle=None,
     sort="descending",
@@ -37,15 +38,18 @@ attaviz.bar(
 
 `bar()` creates horizontal bars. `data` must be a non-empty pandas DataFrame;
 `category` and numeric `value` name columns in that frame. Each category must
-occur exactly once.
+occur exactly once unless `series` is provided.
 
 - `sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
   category sequence.
 - `labels` controls end labels.
+- `series` creates stacked bars from unique `(category, series)` rows. Segment
+  labels smaller than 8% of their category total are hidden.
 - `highlight` accepts one category or a sequence of categories.
 - `height` defaults to a value based on the category count.
 - Missing category or value rows are omitted with `UserWarning`.
-- Duplicate categories, unknown highlights, or invalid fields raise an error.
+- Duplicate keys, negative stacked values, zero stacked totals, unknown
+  highlights, or invalid fields raise an error.
 
 ```python
 chart = attaviz.bar(

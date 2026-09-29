@@ -12,7 +12,7 @@ import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 
 from . import colors
-from .charts import _FORMATS, _format, _title, _validate_highlight, _width
+from .charts import _FORMATS, _format, _humanize, _title, _validate_highlight, _width
 
 _MEANINGS = {
     "neutral": colors.SEQ_BLUE,
@@ -34,13 +34,9 @@ def _geopandas():
         import geopandas as gpd
     except ImportError as exc:  # pragma: no cover - exercised without the maps extra
         raise ImportError(
-            "choropleth() requires the 'maps' extra; reinstall Attaviz with map support"
+            "choropleth() requires the 'maps' extra: pip install \"attaviz[maps]\""
         ) from exc
     return gpd
-
-
-def _humanize(field: str) -> str:
-    return field.replace("_", " ").strip().capitalize()
 
 
 def _map_data(geodata, value: str, label: str):
@@ -202,21 +198,28 @@ def choropleth(
 
     effective_domain = _domain(source[value], domain, meaning)
     distinct = source[value].nunique(dropna=True)
+    discrete_thresholds = None
     if classification in {"equal_interval", "quantile"}:
         classes = 5 if classes is None else classes
         if not isinstance(classes, int) or classes < 2:
             raise ValueError("classes must be an integer of at least two")
         if classes > distinct:
             raise ValueError("classes cannot exceed distinct non-missing values")
-        scale = alt.Scale(
-            type="quantize" if classification == "equal_interval" else "quantile",
-            domain=(
-                effective_domain
-                if classification == "equal_interval"
-                else values.tolist()
-            ),
-            range=_sample_palette(selected_palette, classes),
+        discrete_thresholds = (
+            [
+                effective_domain[0]
+                + (effective_domain[1] - effective_domain[0]) * index / classes
+                for index in range(1, classes)
+            ]
+            if classification == "equal_interval"
+            else values.quantile(
+                [index / classes for index in range(1, classes)]
+            ).tolist()
         )
+        if len(set(discrete_thresholds)) != len(discrete_thresholds):
+            raise ValueError(
+                f"quantile data cannot produce {classes} classes due to tied values"
+            )
         if breaks is not None:
             raise ValueError("breaks may only be used with custom classification")
     elif classification == "custom":
@@ -270,27 +273,61 @@ def choropleth(
             else "nominal"
         )
         tooltips.append(alt.Tooltip(field, type=field_type, title=_humanize(field)))
-    axis_spec = axis.to_dict()
-    legend_options = {
-        key: axis_spec[key] for key in ("format", "labelExpr") if key in axis_spec
-    }
-    if classification == "custom":
-        legend_options["values"] = thresholds
-        legend_options["type"] = "symbol"
-    elif classification != "continuous":
-        legend_options["type"] = "symbol"
-        if value_format == "auto":
-            legend_options.pop("labelExpr", None)
-        elif value_format == "currency":
-            legend_options["labelExpr"] = f"{currency!r} + ' ' + datum.label"
-    legend = alt.Legend(orient="bottom", **legend_options)
-    color = alt.Color(
-        value,
-        type="quantitative",
-        title=value_title,
-        scale=scale,
-        legend=legend,
-    )
+    if discrete_thresholds is not None:
+        if value_format == "percent":
+            break_labels = [f"{item * 100:,.0f}%" for item in discrete_thresholds]
+        else:
+            breaks_frame, _, _, _, breaks_field = _format(
+                pd.DataFrame({value: discrete_thresholds}),
+                value,
+                value_format,
+                currency,
+            )
+            break_labels = (
+                breaks_frame[breaks_field].tolist()
+                if breaks_field in breaks_frame
+                else [f"{item:g}" for item in discrete_thresholds]
+            )
+        break_labels = [label.replace("-", "−", 1) for label in break_labels]
+        class_labels = (
+            [f"< {break_labels[0]}"]
+            + [f"{left}–{right}" for left, right in zip(break_labels, break_labels[1:])]
+            + [f"≥ {break_labels[-1]}"]
+        )
+        formatted["__attaviz_class"] = pd.cut(
+            formatted[value],
+            bins=[-math.inf, *discrete_thresholds, math.inf],
+            labels=class_labels,
+            include_lowest=True,
+            right=False,
+        )
+        color = alt.Color(
+            "__attaviz_class",
+            type="nominal",
+            title=value_title,
+            scale=alt.Scale(
+                type="ordinal",
+                domain=class_labels,
+                range=_sample_palette(selected_palette, len(class_labels)),
+            ),
+            legend=alt.Legend(orient="bottom", symbolType="square"),
+        )
+    else:
+        axis_spec = axis.to_dict()
+        legend_options = {
+            key: axis_spec[key] for key in ("format", "labelExpr") if key in axis_spec
+        }
+        if classification == "custom":
+            legend_options["values"] = thresholds
+            legend_options["type"] = "symbol"
+        legend = alt.Legend(orient="bottom", **legend_options)
+        color = alt.Color(
+            value,
+            type="quantitative",
+            title=value_title,
+            scale=scale,
+            legend=legend,
+        )
     stroke = (
         alt.condition(
             alt.FieldOneOfPredicate(field=label, oneOf=selected),

@@ -1,0 +1,54 @@
+meta:
+  name: Development Data Partnership
+  link: https://datapartnership.org
+
+color:
+  palette:
+    navy: "#001E60"
+    navy-dark: "#001545"
+    purple: "#2E2D70"
+    orange: "#F7951D"
+    orange-dark: "#DF6B00"
+    teal: "#56C3C4"
+    teal-dark: "#3DA3A8"
+    gray-50: "#F8F9FB"
+    gray-200: "#D8DCE5"
+    gray-600: "#495057"
+    gray-800: "#1A1A2E"
+  foreground: gray-800
+  background: white
+  primary: navy
+  secondary: gray-600
+  tertiary: purple
+  success: teal-dark
+  info: teal
+  warning: orange
+  danger: "#C2410C"
+  light: gray-50
+  dark: navy-dark
+
+typography:
+  fonts:
+    - family: Open Sans
+      source: google
+      weight: [400, 600, 700]
+    - family: Roboto Mono
+      source: google
+  base:
+    family: Open Sans
+    line-height: 1.6
+  headings:
+    family: Open Sans
+    weight: 600
+    color: navy
+  monospace: Roboto Mono
+  link:
+    color: navy
+    decoration: none
+
+defaults:
+  bootstrap:
+    defaults:
+      navbar-fg: "#FFFFFF"
+      navbar-hl: "#FFFFFF"
+      border-radius: 0.5rem

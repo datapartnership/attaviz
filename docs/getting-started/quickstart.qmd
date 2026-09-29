@@ -7,14 +7,15 @@ factory.
 
 ```{python}
 import attaviz
-from vega_datasets import data
+import pandas as pd
 
 attaviz.enable()
 
-source = (
-    data.barley()
-    .groupby("site", as_index=False)["yield"]
-    .mean()
+source = pd.DataFrame(
+    {
+        "site": ["Crookston", "Duluth", "Grand Rapids", "Morris", "University Farm"],
+        "yield": [35.1, 33.0, 24.9, 35.4, 32.7],
+    }
 )
 
 attaviz.bar(

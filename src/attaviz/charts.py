@@ -18,6 +18,25 @@ from .theme import DEFAULT_DIMENSIONS, FONT, FONT_WEIGHT_REGULAR, SPACING, TYPOG
 _FORMATS = {"auto", "integer", "decimal", "percent", "currency"}
 _DATE_FORMATS = {"day", "month", "month_year", "quarter", "year", "fiscal_year"}
 _POSITIONS = {"above", "below", "left", "right"}
+# WBG style guide: categorical legend labels are uppercase.
+_CATEGORY_LEGEND = alt.Legend(labelExpr="upper(datum.label)")
+
+
+def _humanize(field: str) -> str:
+    return field.replace("_", " ").strip().capitalize()
+
+
+def _contrast_text(background: str) -> str:
+    channels = [int(background[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+    linear = [
+        c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels
+    ]
+    luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    return (
+        "white"
+        if 1.05 / (luminance + 0.05) >= (luminance + 0.05) / 0.05
+        else colors.TEXT
+    )
 
 
 def _format_integer(value) -> str:
@@ -117,7 +136,7 @@ def _format(
             axis = alt.Axis(format=",.1f", tickCount=5, labelOverlap="greedy")
         elif selected == "percent":
             formatter = _format_percent
-            axis = alt.Axis(format=".1%", tickCount=5, labelOverlap="greedy")
+            axis = alt.Axis(format=".0%", tickCount=5, labelOverlap="greedy")
         else:
             formatter = partial(_format_currency, currency=currency)
             axis = alt.Axis(
@@ -188,6 +207,7 @@ def bar(
     *,
     category: str,
     value: str,
+    series: str | None = None,
     title: str | None = None,
     subtitle: str | None = None,
     sort: Literal["ascending", "descending", "data"] | Sequence[object] = "descending",
@@ -200,18 +220,20 @@ def bar(
 ) -> alt.Chart | alt.LayerChart:
     """Create a publication-ready horizontal bar chart."""
     source = _dataframe(data)
-    _columns(source, category, value)
+    _columns(source, category, value, series)
     _numeric(source, value)
-    source = _drop_missing(source, [category, value])
+    source = _drop_missing(source, [category, value] + ([series] if series else []))
 
-    duplicates = source[category].duplicated(keep=False)
+    keys = [category] + ([series] if series else [])
+    duplicates = source.duplicated(keys, keep=False)
     if duplicates.any():
-        values = source.loc[duplicates, category].drop_duplicates().tolist()
-        raise ValueError(f"category values must be unique; duplicates: {values}")
+        values = source.loc[duplicates, keys].drop_duplicates().to_dict("records")
+        raise ValueError(f"bar keys must be unique; duplicates: {values}")
 
-    if len(source) > 20:
+    category_count = source[category].nunique()
+    if category_count > 20:
         warnings.warn(
-            f"bar chart contains {len(source)} categories; consider filtering or grouping",
+            f"bar chart contains {category_count} categories; consider filtering or grouping",
             UserWarning,
             stacklevel=2,
         )
@@ -227,6 +249,20 @@ def bar(
         source, value, value_format, currency
     )
 
+    if series:
+        _warn_many_series(source, series)
+        if (source[value] < 0).any():
+            raise ValueError("stacked bar values must be non-negative")
+        totals = source.groupby(category, sort=False)[value].transform("sum")
+        if (totals == 0).any():
+            raise ValueError("stacked bar category totals must be positive")
+        source["__attaviz_end"] = source.groupby(category, sort=False)[value].cumsum()
+        source["__attaviz_start"] = source["__attaviz_end"] - source[value]
+        source["__attaviz_mid"] = (
+            source["__attaviz_start"] + source["__attaviz_end"]
+        ) / 2
+        source["__attaviz_share"] = source[value] / totals
+
     if isinstance(sort, str):
         if sort not in {"ascending", "descending", "data"}:
             raise ValueError(
@@ -238,6 +274,88 @@ def bar(
         unknown = [item for item in sort_value if item not in set(source[category])]
         if unknown:
             raise ValueError(f"sort contains unknown category value(s): {unknown}")
+
+    if series:
+        if isinstance(sort, str):
+            totals = source.groupby(category, sort=False)[value].sum()
+            sort_value = (
+                totals.sort_values(ascending=sort == "ascending").index.tolist()
+                if sort != "data"
+                else source[category].drop_duplicates().tolist()
+            )
+        series_order = source[series].drop_duplicates().tolist()
+        palette = (
+            list(reversed(colors.SEQ_BLUE))[: len(series_order)]
+            if len(series_order) <= len(colors.SEQ_BLUE)
+            else colors.CATEGORICAL[: len(series_order)]
+        )
+        source["__attaviz_label_color"] = source[series].map(
+            dict(zip(series_order, map(_contrast_text, palette)))
+        )
+        y = alt.Y(
+            category,
+            type="nominal",
+            title=None,
+            sort=sort_value,
+            axis=alt.Axis(grid=False),
+        )
+        bars = (
+            alt.Chart(source)
+            .mark_bar()
+            .encode(
+                x=alt.X(
+                    "__attaviz_start:Q",
+                    title=None,
+                    scale=alt.Scale(zero=True),
+                    axis=axis,
+                ),
+                x2="__attaviz_end:Q",
+                y=y,
+                color=alt.Color(
+                    series,
+                    type="nominal",
+                    title=None,
+                    sort=series_order,
+                    scale=alt.Scale(domain=series_order, range=palette),
+                    legend=_CATEGORY_LEGEND,
+                ),
+                opacity=(
+                    alt.condition(
+                        alt.FieldOneOfPredicate(field=category, oneOf=selected),
+                        alt.value(1),
+                        alt.value(0.18),
+                    )
+                    if selected
+                    else alt.value(1)
+                ),
+                tooltip=[
+                    alt.Tooltip(category, type="nominal", title=category),
+                    alt.Tooltip(series, type="nominal", title=series),
+                    tooltip_value,
+                ],
+            )
+        )
+        chart: alt.Chart | alt.LayerChart = bars
+        if labels:
+            labels_chart = (
+                alt.Chart(source)
+                .transform_filter(alt.datum.__attaviz_share >= 0.08)
+                .mark_text()
+                .encode(
+                    x="__attaviz_mid:Q",
+                    y=y,
+                    text=text_value,
+                    color=alt.Color("__attaviz_label_color:N", scale=None, legend=None),
+                )
+            )
+            chart = bars + labels_chart
+        return _properties(
+            chart,
+            width=width,
+            height=_height(height, max(120, category_count * 28)),
+            title=title,
+            subtitle=subtitle,
+        )
 
     if selected:
         color = alt.condition(
@@ -275,7 +393,7 @@ def bar(
     return _properties(
         chart,
         width=width,
-        height=_height(height, max(120, len(source) * 28)),
+        height=_height(height, max(120, category_count * 28)),
         title=title,
         subtitle=subtitle,
     )
@@ -358,7 +476,11 @@ def line(
     encoding: dict[str, object] = {
         "x": alt.X(x, type=x_type, title=None, axis=x_axis),
         "y": alt.Y(
-            y, type="quantitative", title=y, scale=alt.Scale(zero=zero), axis=y_axis
+            y,
+            type="quantitative",
+            title=_humanize(y),
+            scale=alt.Scale(zero=zero),
+            axis=y_axis,
         ),
     }
     if series:
@@ -368,7 +490,7 @@ def line(
             series,
             type="nominal",
             title=None,
-            legend=None if show_end_labels else alt.Undefined,
+            legend=None if show_end_labels else _CATEGORY_LEGEND,
         )
         encoding["tooltip"] = tooltip_value
         if selected:
@@ -462,15 +584,25 @@ def scatter(
 
     encoding: dict[str, object] = {
         "x": alt.X(
-            x, type="quantitative", title=x, scale=alt.Scale(zero=x_zero), axis=x_axis
+            x,
+            type="quantitative",
+            title=_humanize(x),
+            scale=alt.Scale(zero=x_zero),
+            axis=x_axis,
         ),
         "y": alt.Y(
-            y, type="quantitative", title=y, scale=alt.Scale(zero=y_zero), axis=y_axis
+            y,
+            type="quantitative",
+            title=_humanize(y),
+            scale=alt.Scale(zero=y_zero),
+            axis=y_axis,
         ),
     }
     if series:
         _warn_many_series(source, series)
-        encoding["color"] = alt.Color(series, type="nominal", title=None)
+        encoding["color"] = alt.Color(
+            series, type="nominal", title=None, legend=_CATEGORY_LEGEND
+        )
     else:
         encoding["color"] = alt.value(colors.CATEGORICAL[0])
     if selected:

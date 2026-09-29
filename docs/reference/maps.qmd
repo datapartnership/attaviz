@@ -5,7 +5,7 @@ title: "Maps"
 Install the optional GeoPandas support before creating maps:
 
 ```bash
-pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
+pip install "attaviz[maps]"
 ```
 
 ## Choropleth
@@ -102,7 +102,8 @@ strings and overrides the semantic palette.
 
 Equal-interval and quantile maps default to five classes. `classes` must be at
 least two and cannot exceed the number of distinct values or available colors.
-It is rejected for continuous and custom scales. `breaks` must be finite,
+Quantile data must also produce distinct thresholds. `classes` is rejected for
+continuous and custom scales. `breaks` must be finite,
 strictly increasing, within the effective domain, and is rejected outside a
 custom classification.
 

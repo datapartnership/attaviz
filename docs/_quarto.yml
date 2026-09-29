@@ -10,16 +10,13 @@ project:
 website:
   title: "attaviz"
   description: "Publication-ready World Bank Group charts and maps for Altair"
+  favicon: images/ddp-logo-stamp.png
   repo-url: https://github.com/datapartnership/attaviz
   repo-actions: [edit, issue]
   navbar:
     left:
-      - text: "Home"
-        href: index.qmd
-      - text: "Getting started"
-        menu:
-          - getting-started/installation.qmd
-          - getting-started/quickstart.qmd
+      - text: "Quick start"
+        href: getting-started/quickstart.qmd
       - text: "Gallery"
         href: gallery.qmd
       - text: "Reference"
@@ -32,13 +29,17 @@ website:
     right:
       - icon: github
         href: https://github.com/datapartnership/attaviz
+  page-footer:
+    left: "A [Development Data Partnership](https://datapartnership.org) project"
+    right: "[PyPI](https://pypi.org/project/attaviz/) · [GitHub](https://github.com/datapartnership/attaviz) · [License](https://github.com/datapartnership/attaviz/blob/main/LICENSE)"
 
 format:
   html:
-    theme: Yeti
+    theme: [Yeti, brand, ddp.scss]
     toc: true
     code-copy: true
     code-overflow: wrap
+    highlight-style: arrow-light
 
 execute:
   freeze: auto

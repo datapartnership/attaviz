@@ -32,13 +32,13 @@ maps = ["geopandas>=1.0"]
 Users install map support with:
 
 ```bash
-pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
+pip install "attaviz[maps]"
 ```
 
 Calling a map function without GeoPandas installed raises an actionable error:
 
 ```text
-choropleth() requires the 'maps' extra; reinstall Attaviz with map support
+choropleth() requires the 'maps' extra: pip install "attaviz[maps]"
 ```
 
 ## Public interface
@@ -143,8 +143,8 @@ differences between neighboring regions.
 classification="equal_interval", classes=5
 ```
 
-This uses Vega-Lite's `quantize` scale to split the value domain into equal
-width ranges.
+Attaviz calculates equal-width thresholds, assigns each value to a labeled
+range, and renders those ranges with an ordinal scale.
 
 ### Quantile
 
@@ -152,8 +152,9 @@ width ranges.
 classification="quantile", classes=5
 ```
 
-This uses Vega-Lite's `quantile` scale to place approximately equal numbers of
-regions in each class.
+Attaviz calculates quantile thresholds from the observed values, assigns each
+value to a labeled range, and renders those ranges with an ordinal scale.
+Ties that prevent the requested number of distinct classes raise `ValueError`.
 
 ### Custom thresholds
 
