@@ -1,6 +1,5 @@
 ---
-title: ""
-pagetitle: "Attaviz"
+title: "Attaviz"
 title-prefix: ""
 description: "Build publication-ready charts and maps in Altair using World Bank visualization standards."
 toc: false
@@ -8,10 +7,48 @@ page-layout: full
 css: homepage.css
 ---
 
-# Attaviz documentation
+::: {.home-hero}
+::: {.home-hero-text}
+<h1>Altair charts in the World Bank Group style</h1>
 
-Build publication-ready charts and maps in Altair using the
-[World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
+Attaviz applies the
+[World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/)
+to Altair. Run `attaviz.enable()` and every chart uses the theme. The chart and
+map functions add highlights, labels, and source notes.
+
+[Read the quick start](getting-started/quickstart.qmd){.btn .btn-primary}
+[See the gallery](gallery.qmd){.btn .btn-outline-primary}
+:::
+
+::: {.home-hero-chart}
+```{python}
+#| echo: false
+import pandas as pd
+
+import attaviz
+
+attaviz.enable()
+
+source = pd.read_csv("data/wdi-southeast-asia-2023.csv")
+
+chart = attaviz.bar(
+    source,
+    category="country",
+    value="life_expectancy",
+    title="People in Malaysia and Thailand live the longest",
+    subtitle="Life expectancy at birth, years, 2023",
+    highlight=["Malaysia", "Thailand"],
+)
+
+attaviz.frame(
+    chart,
+    description="Horizontal bars of life expectancy in seven Southeast Asian countries; Malaysia and Thailand are highlighted.",
+    source="World Development Indicators",
+    source_url="https://databank.worldbank.org/source/world-development-indicators",
+)
+```
+:::
+:::
 
 ## Get started
 

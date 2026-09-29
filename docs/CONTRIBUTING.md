@@ -49,7 +49,7 @@ uv run ruff format .
 Install [Quarto](https://quarto.org/docs/get-started/), then render the site:
 
 ```bash
-quarto render docs
+uv run quarto render docs
 ```
 
 The generated site is written to `docs/_site/` and is not committed.
