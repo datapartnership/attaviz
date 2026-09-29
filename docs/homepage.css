@@ -1,5 +1,24 @@
 .page-layout-full main.content { max-width: 1180px; }
 
+/* The hero holds the page heading; hide Quarto's title block for "Attaviz". */
+#title-block-header { display: none; }
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: var(--ddp-space-6);
+  align-items: center;
+}
+
+.home-hero h1 { margin-block: 0 var(--ddp-space-4); font-size: 2.875rem; line-height: 1.1; }
+.home-hero-text p { color: #495057; font-size: 1.125rem; }
+.home-hero-text p:last-child { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block: var(--ddp-space-4) 0; }
+main.content .home-hero a.btn { font-weight: 600; text-decoration: none; }
+
+/* attaviz.frame() fixes the chart width, so scale the SVG to the column. */
+.home-hero-chart .chart-wrapper { width: 100% !important; }
+.home-hero-chart svg { width: 100%; height: auto; }
+
 .docs-links {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -14,6 +33,8 @@ main.content section.level2 { margin-block-start: var(--ddp-space-6); }
 main.content section.level2 > h2 { margin-block-end: var(--ddp-space-4); }
 
 @media (max-width: 950px) {
+  .home-hero { grid-template-columns: 1fr; gap: var(--ddp-space-5); }
+  .home-hero h1 { font-size: 2.25rem; }
   .docs-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
