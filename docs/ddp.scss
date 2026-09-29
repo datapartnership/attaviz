@@ -1,0 +1,163 @@
+/*-- scss:defaults --*/
+
+$callout-color-note: #001E60; // brand navy
+$callout-color-tip: #3DA3A8; // brand teal-dark
+$callout-color-important: #2E2D70; // brand purple
+$callout-color-warning: #DF6B00; // brand orange-dark
+$callout-color-caution: #C2410C; // brand danger
+
+/*-- scss:rules --*/
+
+// Spacing scale, mirrored in attaviz-design.pen (space/1–6).
+:root {
+  --ddp-space-1: 0.25rem;
+  --ddp-space-2: 0.5rem;
+  --ddp-space-3: 1rem;
+  --ddp-space-4: 1.5rem;
+  --ddp-space-5: 2.5rem;
+  --ddp-space-6: 4rem;
+}
+
+.navbar {
+  position: relative;
+  background: $brand-navy;
+  border: 0;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.navbar-title {
+  font-weight: 600;
+}
+
+.navbar .nav-link.active,
+.navbar .nav-link.show {
+  box-shadow: inset 0 -3px $brand-orange;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus-visible {
+  color: $brand-orange;
+}
+
+.navbar .dropdown-item:hover,
+.navbar .dropdown-item:focus-visible {
+  color: $brand-navy;
+  background: $brand-gray-50;
+}
+
+.sidebar nav[role="doc-toc"] a.active,
+.sidebar nav[role="doc-toc"] a:hover {
+  color: $brand-navy;
+  border-left-color: $brand-orange;
+}
+
+code:not(.sourceCode) {
+  color: $brand-purple;
+  background: $brand-gray-50;
+}
+
+main.content a:not(.anchorjs-link) {
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.16em;
+  text-decoration-skip-ink: auto;
+}
+
+main.content a:not(.anchorjs-link):hover,
+main.content a:not(.anchorjs-link):focus-visible {
+  text-decoration-color: $brand-orange;
+  text-decoration-thickness: 2px;
+}
+
+.quarto-title h1,
+main.content h1,
+main.content h2,
+main.content h3 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+main.content p,
+main.content li {
+  max-width: 68ch;
+}
+
+.page-layout-full main.content {
+  max-width: 1180px;
+}
+
+main.content section.level2:has(> .gallery-example) > h2 {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.panel-tabset.gallery-example {
+  margin: var(--ddp-space-3) 0 var(--ddp-space-5);
+}
+
+.panel-tabset.gallery-example > .nav-tabs {
+  border-bottom: 1px solid $brand-gray-200;
+}
+
+.panel-tabset.gallery-example .nav-tabs .nav-link {
+  color: $brand-gray-600;
+  border: 0;
+  border-radius: 0;
+  text-decoration: none;
+}
+
+.panel-tabset.gallery-example .nav-tabs .nav-link.active {
+  color: $brand-navy;
+  font-weight: 600;
+  box-shadow: inset 0 -3px $brand-orange;
+}
+
+.panel-tabset.gallery-example > .tab-content {
+  margin: 0;
+  padding: var(--ddp-space-4) 0 0;
+  border: 0;
+}
+
+.gallery-example .cell,
+.gallery-example .gallery-code {
+  max-width: 820px;
+}
+
+.gallery-example .gallery-code {
+  margin-top: var(--ddp-space-3);
+}
+
+.navbar a,
+footer.footer a {
+  text-decoration: none;
+}
+
+footer.footer,
+footer.footer .nav-footer {
+  color: white;
+  background: $brand-navy;
+}
+
+footer.footer {
+  border-top: 3px solid $brand-teal;
+}
+
+footer.footer a {
+  color: inherit;
+}
+
+footer.footer a:hover,
+footer.footer a:focus-visible {
+  color: $brand-orange;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn {
+    transition: color 120ms ease-out, background-color 120ms ease-out,
+      border-color 120ms ease-out, transform 120ms ease-out;
+  }
+
+  .btn:active {
+    transform: scale(0.96);
+  }
+}

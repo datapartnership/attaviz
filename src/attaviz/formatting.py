@@ -41,6 +41,7 @@ def _unit_suffix(unit: str | None) -> str:
         return _UNIT_ABBREVS[key]
     return f" {unit}"
 
+
 ScaleType = Literal["K", "M", "B", "G", "auto"]
 DateStyle = Literal["day", "month", "month_year", "quarter", "year", "fiscal_year"]
 
@@ -244,7 +245,8 @@ def vega_scale_labelExpr(
         tail = repr(suffix + unit_tail)
         if decimals == "auto":
             return (
-                f"(abs({scaled}) >= 100 ? {p} + format({scaled}, ',.0f') + {tail} : "
+                f"({scaled} === round({scaled}) ? {p} + format({scaled}, ',.0f') + {tail} : "
+                f"abs({scaled}) >= 100 ? {p} + format({scaled}, ',.0f') + {tail} : "
                 f"abs({scaled}) >= 1 ? {p} + format({scaled}, ',.1f') + {tail} : "
                 f"{p} + format({scaled}, ',.2f') + {tail})"
             )

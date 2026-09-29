@@ -3,20 +3,20 @@
 .docs-links {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2.5rem 3rem;
+  gap: var(--ddp-space-5);
 }
 
 .docs-link { padding: 0; }
 .docs-link h3, .docs-link p { margin-block: 0; }
-.docs-link h3 { margin-block-end: 0.25rem; font-size: 1.1rem; }
+.docs-link h3 { margin-block-end: var(--ddp-space-1); font-size: 1.1rem; }
 .docs-link p { color: #495057; font-size: 0.95rem; }
-main.content section.level2 { margin-block-start: 4rem; }
-main.content section.level2 > h2 { margin-block-end: 1.75rem; }
+main.content section.level2 { margin-block-start: var(--ddp-space-6); }
+main.content section.level2 > h2 { margin-block-end: var(--ddp-space-4); }
 
 @media (max-width: 950px) {
   .docs-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 600px) {
-  .docs-links { grid-template-columns: 1fr; gap: 2rem; }
+  .docs-links { grid-template-columns: 1fr; gap: var(--ddp-space-4); }
 }

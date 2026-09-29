@@ -1,0 +1,15 @@
+country_code,country,area,access
+IDN,Indonesia,Urban,1.000
+IDN,Indonesia,Rural,0.983
+KHM,Cambodia,Urban,0.990
+KHM,Cambodia,Rural,0.880
+LAO,Lao PDR,Urban,1.000
+LAO,Lao PDR,Rural,1.000
+MYS,Malaysia,Urban,1.000
+MYS,Malaysia,Rural,1.000
+PHL,Philippines,Urban,0.980
+PHL,Philippines,Rural,0.911
+THA,Thailand,Urban,1.000
+THA,Thailand,Rural,1.000
+VNM,Viet Nam,Urban,1.000
+VNM,Viet Nam,Rural,1.000

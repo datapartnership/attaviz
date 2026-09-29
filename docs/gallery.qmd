@@ -1,6 +1,9 @@
 ---
 title: Gallery
 jupyter: python3
+page-layout: full
+code-fold: true
+code-summary: "Show code"
 ---
 
 
@@ -8,6 +11,7 @@ A visual showcase of common chart types with the WBG theme enabled.
 
 
 ```{python}
+#| echo: false
 import altair as alt
 import pandas as pd
 from vega_datasets import data
@@ -22,7 +26,13 @@ attaviz.enable()
 These examples use Altair directly. Attaviz supplies the visual defaults while
 Altair supplies the chart specification.
 
+
 ## Bar chart
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.barley()
@@ -37,10 +47,22 @@ alt.Chart(
     x=alt.X("mean(yield):Q", title="Mean Yield"),
     y=alt.Y("site:N", title="Site", sort="-x"),
     color=alt.value(attaviz.CATEGORICAL[0]),
-).properties(width=500, height=300)
+).properties(width="container", height=300)
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Line chart
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.stocks()
@@ -54,10 +76,22 @@ alt.Chart(
     x=alt.X("date:T", title=None),
     y=alt.Y("price:Q", title="Price (USD)"),
     color=alt.Color("symbol:N", title="Symbol"),
-).properties(width=550, height=350)
+).properties(width="container", height=350)
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Line chart with hover
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.stocks()
@@ -75,13 +109,25 @@ lines = (
         y=alt.Y("price:Q", title="Price (USD)"),
         color=alt.Color("symbol:N", title="Symbol"),
     )
-    .properties(width=550, height=350)
+    .properties(width="container", height=350)
 )
 
 attaviz.add_hover(lines, x="date", format="$.2f")
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Scatter plot
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.cars()
@@ -101,10 +147,22 @@ alt.Chart(
         "Horsepower:Q",
         alt.Tooltip("Miles_per_Gallon:Q", title="Miles per Gallon"),
     ],
-).properties(width=550, height=380)
+).properties(width="container", height=380)
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Area chart
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.iowa_electricity()
@@ -118,10 +176,22 @@ alt.Chart(
     x=alt.X("year:T", title=None),
     y=alt.Y("net_generation:Q", title="Net Generation (GWh)"),
     color=alt.Color("source:N", title="Source"),
-).properties(width=550, height=350)
+).properties(width="container", height=350)
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Heatmap
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.seattle_weather()
@@ -136,30 +206,39 @@ alt.Chart(
     x=alt.X("month(date):O", title="Month"),
     y=alt.Y("year(date):O", title="Year", axis=alt.Axis(grid=False)),
     color=alt.Color("mean(temp_max):Q", title="Avg Max Temp (°F)"),
-).properties(width=500, height=250)
+).properties(width="container", height=250)
 ```
+
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
 
 # Opinionated factories
 
 These examples use Attaviz factories and composition helpers to handle common
 editorial decisions.
 
+
 ## Opinionated bar with highlight and publication frame
 
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
 ```{python}
-source = pd.DataFrame(
-    {
-        "country": ["Indonesia", "Philippines", "Vietnam", "Thailand", "Malaysia"],
-        "gdp": [1.37e12, 437e9, 430e9, 515e9, 400e9],
-    }
-)
+source = pd.read_csv("data/wdi-southeast-asia-2023.csv")
 
 chart = attaviz.bar(
     source,
     category="country",
     value="gdp",
     title="Indonesia has Southeast Asia's largest economy",
-    subtitle="Current-price GDP, illustrative values",
+    subtitle="Current-price GDP, 2023",
     highlight="Indonesia",
     value_format="currency",
     currency="USD",
@@ -168,13 +247,24 @@ chart = attaviz.bar(
 attaviz.frame(
     chart,
     description="Horizontal bars comparing GDP in five Southeast Asian economies; Indonesia is highlighted.",
-    source="World Bank",
-    source_url="https://data.worldbank.org/",
-    note="Values are included for interface demonstration.",
+    source="World Development Indicators",
+    source_url="https://databank.worldbank.org/source/world-development-indicators",
 )
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Opinionated line with annotation and reference
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.stocks().query("symbol in ['AAPL', 'MSFT', 'GOOG']")
@@ -187,7 +277,7 @@ chart = attaviz.line(
     title="Technology stocks followed different paths",
     subtitle="Monthly closing price, 2000–2010",
     highlight="AAPL",
-    width=650,
+    width="responsive",
 )
 
 chart = attaviz.add_reference_line(
@@ -206,7 +296,19 @@ attaviz.add_annotation(
 )
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Opinionated scatter with highlight and reference range
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.cars().dropna(subset=["Horsepower", "Miles_per_Gallon", "Name"])
@@ -231,9 +333,23 @@ attaviz.add_reference_range(
 )
 ```
 
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 # More theme and utility examples
 
+
 ## Histogram
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.movies()
@@ -248,10 +364,22 @@ alt.Chart(
     x=alt.X("IMDB_Rating:Q", bin=alt.Bin(maxbins=30), title="IMDB Rating"),
     y=alt.Y("count()", title="Number of Movies"),
     color=alt.value(attaviz.CATEGORICAL[0]),
-).properties(width=550, height=300)
+).properties(width="container", height=300)
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Diverging color scale
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.us_employment()
@@ -274,10 +402,22 @@ alt.Chart(
         alt.Tooltip("month:T", title="Month"),
         alt.Tooltip("nonfarm_change:Q", title="Change (thousands)"),
     ],
-).properties(width=500, height=300)
+).properties(width="container", height=300)
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Faceted small multiples
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.iris()
@@ -300,7 +440,19 @@ alt.Chart(
 )
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Title, subtitle, and caption
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.barley()
@@ -319,13 +471,25 @@ chart = (
         y=alt.Y("site:N", sort="-x", title=None),
         color=alt.value(attaviz.CATEGORICAL[0]),
     )
-    .properties(width=500, height=300)
+    .properties(width="container", height=300)
 )
 
 attaviz.add_caption(chart, "Source: Minnesota agricultural experiment stations, 1931–1932")
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Formatted axis labels
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.gapminder().query("year == 2005").nlargest(5, "pop")
@@ -344,15 +508,340 @@ alt.Chart(
     ),
     y=alt.Y("country:N", sort="-x", title=None),
     color=alt.value(attaviz.CATEGORICAL[0]),
-).properties(width=500, height=250)
+).properties(width="container", height=250)
 ```
+
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+# More chart types
+
+
+## Small multiples
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+countries = ["Afghanistan", "China", "India", "Indonesia", "Nigeria", "United States"]
+source = data.gapminder()
+source = source[source["country"].isin(countries)]
+
+base = alt.Chart().encode(
+    x=alt.X("year:Q", title=None, axis=alt.Axis(format="d", tickCount=3)),
+    y=alt.Y("life_expect:Q", title=None, scale=alt.Scale(zero=False)),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+)
+latest = base.transform_filter(alt.datum.year == 2005)
+
+alt.layer(
+    base.mark_line(),
+    latest.mark_point(filled=True, size=40),
+    latest.mark_text(align="left", dx=6).encode(text=alt.Text("life_expect:Q", format=".0f")),
+    data=source,
+).properties(width=170, height=110).facet(
+    facet=alt.Facet("country:N", title=None, sort=countries),
+    columns=3,
+).properties(
+    title=alt.Title(
+        "Life expectancy rose across countries",
+        subtitle="Life expectancy at birth, 1955–2005",
+    )
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Dumbbell chart
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+countries = ["Afghanistan", "China", "India", "Indonesia", "Nigeria", "United States"]
+points = data.gapminder()
+points = points[
+    points["country"].isin(countries) & points["year"].isin([1955, 2005])
+]
+source = points.pivot(index="country", columns="year", values="life_expect").reset_index()
+source = source.rename(columns={1955: "start", 2005: "end"})
+order = source.assign(change=source["end"] - source["start"]).sort_values(
+    "change", ascending=False
+)["country"].tolist()
+
+y = alt.Y("country:N", sort=order, title=None)
+connector = alt.Chart(source).mark_rule(color=attaviz.REFERENCE, strokeWidth=2).encode(
+    x="start:Q", x2="end:Q", y=y
+)
+dots = alt.Chart(points).mark_circle(size=90, opacity=1).encode(
+    x=alt.X("life_expect:Q", title="Life expectancy at birth (years)"),
+    y=y,
+    color=alt.Color(
+        "year:N",
+        scale=alt.Scale(range=[attaviz.GREY_300, attaviz.CATEGORICAL[0]]),
+        legend=alt.Legend(title=None, labelExpr="upper(datum.label)"),
+    ),
+    tooltip=["country:N", "year:N", alt.Tooltip("life_expect:Q", format=".1f")],
+)
+
+(connector + dots).properties(
+    width="container",
+    height=260,
+    title=alt.Title(
+        "Life expectancy increased across countries",
+        subtitle="Years at birth, 1955 and 2005, sorted by change",
+    ),
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Stacked area
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = pd.read_csv("data/wdi-indonesia-employment.csv")
+
+chart = alt.Chart(source).mark_area().encode(
+    x=alt.X("year:O", title=None),
+    y=alt.Y("share:Q", stack="normalize", title="Share of employment", axis=alt.Axis(format="%")),
+    color=alt.Color(
+        "sector:N",
+        title=None,
+        legend=alt.Legend(labelExpr="upper(datum.label)"),
+    ),
+    tooltip=[
+        "year:O",
+        "sector:N",
+        alt.Tooltip("share:Q", title="Share", format=".1f"),
+    ],
+).properties(
+    width="container",
+    height=280,
+    title=alt.Title(
+        "Services account for half of Indonesia's employment",
+        subtitle="Modeled share of employment by sector, 2000–2024",
+    ),
+)
+
+attaviz.add_caption(chart, "Source: World Development Indicators")
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Grouped bar
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = pd.read_csv("data/wdi-electricity-access-2022.csv")
+
+alt.Chart(source).mark_bar().encode(
+    x=alt.X("access:Q", title=None, axis=alt.Axis(format="%"), scale=alt.Scale(domain=[0, 1])),
+    y=alt.Y("country:N", title=None),
+    yOffset=alt.YOffset("area:N", sort=["Urban", "Rural"]),
+    color=alt.Color(
+        "area:N",
+        scale=alt.Scale(
+            domain=["Urban", "Rural"],
+            range=[attaviz.URBANIZATION["urban"], attaviz.URBANIZATION["rural"]],
+        ),
+        legend=alt.Legend(title=None, labelExpr="upper(datum.label)"),
+    ),
+    tooltip=["country:N", "area:N", alt.Tooltip("access:Q", format=".0%")],
+).properties(
+    width="container",
+    height=alt.Step(12),
+    title=alt.Title(
+        "Rural electricity access still trails in some countries",
+        subtitle="Share of population with access to electricity, 2022",
+    ),
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Line chart with uncertainty band
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = pd.read_csv("data/hci-range.csv")
+
+base = alt.Chart(source).encode(
+    x=alt.X("year:O", title=None, axis=alt.Axis(labelAngle=0)),
+)
+band = base.mark_area(color=attaviz.CATEGORICAL[0], opacity=0.2).encode(
+    y=alt.Y("lower:Q", title="Human Capital Index", scale=alt.Scale(zero=False)),
+    y2="upper:Q",
+)
+estimate = base.mark_line(color=attaviz.CATEGORICAL_TEXT[0], point=True).encode(
+    y="estimate:Q",
+    tooltip=["country:N", "year:O", alt.Tooltip("estimate:Q", format=".3f")],
+)
+
+chart = (band + estimate).properties(
+    width=190,
+    height=150,
+).facet(
+    facet=alt.Facet("country:N", title=None),
+    columns=3,
+).properties(
+    title=alt.Title(
+        "Human capital changed unevenly across Southeast Asia",
+        subtitle="Human Capital Index estimate and uncertainty range, selected years",
+    ),
+)
+
+attaviz.add_caption(chart, "Source: World Bank Human Capital Index database")
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Bubble scatterplot
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = pd.read_csv("data/wdi-southeast-asia-2023.csv")
+
+alt.Chart(source).mark_circle(opacity=0.75, stroke="white", strokeWidth=1).encode(
+    x=alt.X("gdp_per_capita:Q", title="GDP per capita (USD)", axis=alt.Axis(format="~s")),
+    y=alt.Y("life_expectancy:Q", title="Life expectancy (years)", scale=alt.Scale(zero=False)),
+    size=alt.Size(
+        "population:Q",
+        title="Population",
+        scale=alt.Scale(range=[80, 1_200]),
+        legend=alt.Legend(orient="right", direction="vertical"),
+    ),
+    color=alt.Color(
+        "income_group:N",
+        legend=alt.Legend(title=None, labelExpr="upper(datum.label)"),
+    ),
+    tooltip=[
+        "country:N",
+        "income_group:N",
+        alt.Tooltip("gdp_per_capita:Q", title="GDP per capita", format=",.0f"),
+        alt.Tooltip("life_expectancy:Q", title="Life expectancy", format=".1f"),
+        alt.Tooltip("population:Q", title="Population", format=",.0f"),
+    ],
+).properties(
+    width="container",
+    height=320,
+    title=alt.Title(
+        "Higher incomes are associated with longer lives",
+        subtitle="Bubble size represents population, 2023",
+    ),
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Slope chart
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = pd.read_csv("data/wdi-electricity-access-2010-2023.csv")
+
+base = alt.Chart(source).encode(
+    x=alt.X("year:O", title=None, axis=alt.Axis(labelAngle=0, ticks=False)),
+    y=alt.Y("access:Q", title="Population with electricity access", axis=alt.Axis(format="%"), scale=alt.Scale(zero=False)),
+    color=alt.Color("country:N", legend=None),
+)
+lines = base.mark_line(strokeWidth=2)
+points = base.mark_circle(size=70)
+labels = base.transform_filter(alt.datum.year == 2023).mark_text(align="left", dx=8).encode(
+    text="country:N"
+)
+
+chart = (lines + points + labels).properties(
+    width="container",
+    height=300,
+    title=alt.Title(
+        "Electricity access expanded across Southeast Asia",
+        subtitle="Share of population with access, 2010 and 2023",
+    ),
+)
+
+attaviz.add_caption(chart, "Source: World Development Indicators")
+```
+
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
 
 # Maps
 
 Map factories handle geometry validation, projection, missing values,
 classification, legends, and tooltips.
 
+
 ## Choropleth map
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 import geopandas as gpd
@@ -386,7 +875,19 @@ attaviz.frame(
 )
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Continuous choropleth with missing data and annotation
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 continuous_countries = countries.copy()
@@ -415,7 +916,19 @@ attaviz.add_map_annotation(
 )
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Quantile change choropleth
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 change_countries = countries.assign(
@@ -431,57 +944,85 @@ attaviz.choropleth(
     value_label="Difference from regional median",
     meaning="change",
     classification="quantile",
+    classes=3,
     value_format="percent",
     title="Income differs across the region",
-    subtitle="Difference from the regional median, grouped into five quantiles",
+    subtitle="Difference from the regional median, grouped into three quantiles",
     projection="mercator",
     width=700,
     height=450,
 )
 ```
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 ## Point map
 
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
 ```{python}
-from vega_datasets import data as vega_data
+capitals = pd.DataFrame(
+    {
+        "city": ["Bangkok", "Hanoi", "Jakarta", "Kuala Lumpur", "Manila", "Phnom Penh"],
+        "country": ["Thailand", "Viet Nam", "Indonesia", "Malaysia", "Philippines", "Cambodia"],
+        "longitude": [100.5018, 105.8342, 106.8456, 101.6869, 120.9842, 104.9282],
+        "latitude": [13.7563, 21.0278, -6.2088, 3.1390, 14.5995, 11.5564],
+    }
+)
 
-states = alt.topo_feature(vega_data.us_10m.url, "states")
-airports = vega_data.airports.url
-
-base = alt.Chart(states).mark_geoshape(
+base = alt.Chart(countries).mark_geoshape(
     fill=attaviz.NO_DATA,
     stroke="white",
     strokeWidth=0.5,
     tooltip=None,
 )
 
-points = alt.Chart(airports).mark_circle(
-    size=12,
-    opacity=0.6,
+points = alt.Chart(capitals).mark_circle(
+    size=45,
     color=attaviz.CATEGORICAL[0],
 ).encode(
     longitude="longitude:Q",
     latitude="latitude:Q",
     tooltip=[
-        alt.Tooltip("name:N", title="Airport"),
         alt.Tooltip("city:N", title="City"),
-        alt.Tooltip("state:N", title="State"),
+        alt.Tooltip("country:N", title="Country"),
     ],
 )
 
-(base + points).project(type="albersUsa").properties(
+(base + points).project(type="mercator").properties(
     width=600,
     height=360,
     title=alt.Title(
-        "US Airports",
-        subtitle="Locations of public airports in the contiguous United States",
+        "Selected Southeast Asian capitals",
+        subtitle="Capital-city locations over local gallery boundaries",
     ),
 )
 ```
 
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
 # Formatting utility
 
 ## Auto-scaled with `vega_scale_labelExpr`
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
 
 ```{python}
 source = data.gapminder().query("year == 2005").nlargest(5, "pop")
@@ -501,5 +1042,25 @@ alt.Chart(
     y=alt.Y("country:N", sort="-x", title=None),
     color=alt.value(attaviz.CATEGORICAL[0]),
     tooltip=alt.Tooltip("pop:Q", format=attaviz.d3_number_format(decimals=0))
-).properties(width=500, height=250)
+).properties(width="container", height=250)
 ```
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".panel-tabset.gallery-example").forEach(example => {
+    const code = example.querySelector(".cell details.code-fold");
+    const target = example.querySelector(".gallery-code");
+    const source = code?.querySelector(".code-copy-outer-scaffold");
+    if (source && target) {
+      target.append(source);
+      code.remove();
+    }
+  });
+});
+</script>

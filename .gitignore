@@ -8,6 +8,10 @@
 /docs/.quarto/
 /docs/_freeze/
 
+# Local design explorations
+/attaviz-design.pen
+/design-explorations/
+
 # Icon must end with two \r
 Icon
 

@@ -40,6 +40,40 @@ def test_bar_requires_summarized_data():
         attaviz.bar(data, category="country", value="value")
 
 
+def test_bar_stacks_series_and_centers_labels():
+    data = pd.DataFrame(
+        {
+            "region": ["A", "A", "B", "B"],
+            "service": ["basic", "limited", "basic", "limited"],
+            "share": [0.8, 0.2, 0.6, 0.4],
+        }
+    )
+
+    spec = attaviz.bar(
+        data,
+        category="region",
+        value="share",
+        series="service",
+        value_format="percent",
+    ).to_dict()
+
+    assert spec["layer"][0]["encoding"]["x"]["field"] == "__attaviz_start"
+    assert spec["layer"][0]["encoding"]["x2"]["field"] == "__attaviz_end"
+    assert (
+        spec["layer"][0]["encoding"]["color"]["legend"]["labelExpr"]
+        == "upper(datum.label)"
+    )
+    assert (
+        spec["layer"][0]["encoding"]["color"]["scale"]["range"]
+        == list(reversed(attaviz.SEQ_BLUE))[:2]
+    )
+    assert spec["layer"][1]["encoding"]["x"]["field"] == "__attaviz_mid"
+    assert spec["layer"][1]["encoding"]["color"]["field"] == "__attaviz_label_color"
+    assert (
+        spec["layer"][1]["transform"][0]["filter"] == "(datum.__attaviz_share >= 0.08)"
+    )
+
+
 def test_currency_requires_code():
     data = pd.DataFrame({"country": ["A"], "value": [1]})
 
@@ -204,3 +238,26 @@ def test_framed_responsive_bar_keeps_full_width_and_hides_raw_axis_title():
     assert spec["vconcat"][0]["layer"][0]["encoding"]["x"]["title"] is None
     assert spec["vconcat"][0]["layer"][0]["encoding"]["y"]["axis"]["grid"] is False
     assert spec["title"]["text"] == ["Source: World Bank"]
+
+
+def test_categorical_legends_use_uppercase_labels():
+    data = pd.DataFrame({"x": [1, 2], "y": [3, 4], "group": ["a", "b"]})
+    upper = "upper(datum.label)"
+
+    line = attaviz.line(data, x="x", y="y", series="group", end_labels=False)
+    scatter = attaviz.scatter(data, x="x", y="y", series="group")
+
+    assert (
+        line.to_dict()["layer"][0]["encoding"]["color"]["legend"]["labelExpr"] == upper
+    )
+    assert scatter.to_dict()["encoding"]["color"]["legend"]["labelExpr"] == upper
+
+
+def test_factory_axes_humanize_fields_and_auto_format_rounds_integer_ticks():
+    data = pd.DataFrame({"horse_power": [50, 100], "miles_per_gallon": [20, 30]})
+
+    spec = attaviz.scatter(data, x="horse_power", y="miles_per_gallon").to_dict()
+
+    assert spec["encoding"]["x"]["title"] == "Horse power"
+    assert spec["encoding"]["y"]["title"] == "Miles per gallon"
+    assert "=== round(" in spec["encoding"]["x"]["axis"]["labelExpr"]

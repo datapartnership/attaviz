@@ -2,29 +2,29 @@
 title: "Installation"
 ---
 
-`attaviz` is not yet published to PyPI. Install it directly from GitHub.
+Install `attaviz` from PyPI.
 
 ## With uv
 
 ```bash
-uv add "attaviz @ git+https://github.com/datapartnership/attaviz.git"
+uv add attaviz
 ```
 
 ## With pip
 
 ```bash
-pip install "git+https://github.com/datapartnership/attaviz.git"
+pip install attaviz
 ```
 
 For choropleth maps, install the optional GeoPandas support:
 
 ```bash
-uv add "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
+uv add "attaviz[maps]"
 # or
-pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"
+pip install "attaviz[maps]"
 ```
 
-The quoted form prevents the shell from expanding the `@` and `+` characters.
+Keep the extra in quotes so shells do not expand the brackets.
 
 ## Requirements
 

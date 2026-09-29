@@ -205,6 +205,13 @@ def wbg_theme(
             "bar": {
                 "cornerRadiusEnd": 0,
             },
+            "text": {
+                "font": FONT,
+                "fontSize": font_s,
+                "fontWeight": FONT_WEIGHT_SEMIBOLD,
+                "lineHeight": round(font_s * LINE_HEIGHT_SHORT),
+                "color": colors.TEXT,
+            },
             "area": {
                 "opacity": 0.7,
             },
@@ -294,9 +301,11 @@ def wbg_theme(
                 "titlePadding": space["xxs"],
                 "symbolSize": 196,  # 14x14 px dot
                 "symbolStrokeWidth": 0,
-                "padding": space["m"],
+                "padding": 0,  # offset alone gives the guide's xl chart-to-legend gap
                 "offset": space["xl"],
                 "columnPadding": space["xl"],
+                "rowPadding": space["xs"],
+                "labelOffset": space["xs"],
                 "orient": "bottom",
                 "labelLimit": 200,
                 "titleLimit": 200,

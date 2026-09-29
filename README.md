@@ -8,12 +8,12 @@ the [World Bank Group Data Visualization Style Guide](https://worldbank.github.i
 ## Install
 
 ```bash
-uv add "attaviz @ git+https://github.com/datapartnership/attaviz.git"
+uv add attaviz
 # or
-pip install "git+https://github.com/datapartnership/attaviz.git"
+pip install attaviz
 ```
 
-Add the optional `maps` extra for choropleths: `pip install "attaviz[maps] @ git+https://github.com/datapartnership/attaviz.git"`.
+Add the optional `maps` extra for choropleths: `pip install "attaviz[maps]"`.
 
 ## Quick start
 

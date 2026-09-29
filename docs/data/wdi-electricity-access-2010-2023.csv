@@ -1,0 +1,11 @@
+country_code,country,year,access
+IDN,Indonesia,2010,0.942
+IDN,Indonesia,2023,0.994
+MYS,Malaysia,2010,0.995
+MYS,Malaysia,2023,1.000
+PHL,Philippines,2010,0.855
+PHL,Philippines,2023,0.980
+THA,Thailand,2010,0.997
+THA,Thailand,2023,1.000
+VNM,Viet Nam,2010,0.974
+VNM,Viet Nam,2023,0.998
