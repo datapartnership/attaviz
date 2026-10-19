@@ -2,6 +2,9 @@
 title: "Maps"
 ---
 
+`choropleth()` is a map template. It turns a joined GeoDataFrame into a
+publication-ready choropleth map.
+
 Install the optional GeoPandas support before creating maps:
 
 ```bash
@@ -126,7 +129,7 @@ observed value. A change domain must also include zero. Quantile boundaries are
 always derived from the observed distribution; use another classification when
 multiple maps must share thresholds.
 
-`value_format` accepts the same presets and D3 strings as chart factories.
+`value_format` accepts the same presets and D3 strings as chart templates.
 Currency formatting requires `currency="CODE"` and rejects a currency supplied
 with any other format.
 

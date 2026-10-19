@@ -8,7 +8,7 @@ project:
     - "gallery.qmd"
 
 website:
-  title: "attaviz"
+  title: "Attaviz"
   description: "Publication-ready World Bank Group charts and maps for Altair"
   favicon: images/attaviz-favicon.svg
   repo-url: https://github.com/datapartnership/attaviz

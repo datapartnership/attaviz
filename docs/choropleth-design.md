@@ -14,7 +14,7 @@ plumbing behind a small interface.
   joins or aggregates geographic data silently.
 - Attaviz never bundles boundary datasets. Boundary selection, disputed areas,
   and World Bank boundary policy remain the caller's responsibility.
-- The factory returns an ordinary Altair chart and never mutates its input.
+- The template returns an ordinary Altair chart and never mutates its input.
 - The initial implementation supports polygon and multipolygon choropleths.
 - GeoPandas is installed through an optional `maps` extra.
 - Natural breaks, basemaps, navigation, and other non-native capabilities stay
@@ -99,7 +99,7 @@ The active GeoDataFrame geometry column supplies the shapes.
   `Poverty rate`.
 - `tooltip` accepts a sequence of additional column names. Missing names raise
   `ValueError`; headings are humanized.
-- `title` and `subtitle` follow the existing factory convention. A subtitle
+- `title` and `subtitle` follow the existing template convention. A subtitle
   without a title raises `ValueError`.
 
 ## Color meaning
@@ -244,7 +244,7 @@ attaviz.add_map_annotation(
 
 ## Formatting
 
-`value_format` follows the existing chart-factory convention:
+`value_format` follows the existing chart-template convention:
 
 - `"auto"`
 - `"integer"`

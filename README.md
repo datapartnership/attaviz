@@ -1,6 +1,6 @@
-# attaviz
+# Attaviz
 
-Publication-ready Altair themes, chart factories, and choropleth maps based on
+Publication-ready Altair themes, chart templates, and choropleth maps based on
 the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/).
 
 **Documentation:** <https://datapartnership.github.io/attaviz/>

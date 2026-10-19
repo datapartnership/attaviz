@@ -96,7 +96,11 @@ Altair as strings, or use a Vega expression in the axis encoding.
 
 ## Captions
 
-Attach a styled caption below a chart.
+Use [`frame()`](charts.qmd#publication-frame) to add a note, a source, and a
+byline below a chart. It also requires an accessibility description.
+
+`add_caption()` remains available for compatibility. It attaches one styled
+caption below a chart.
 
 ```python
 attaviz.add_caption(
@@ -109,8 +113,3 @@ attaviz.add_caption(
 
 - `align` — `"left"` (default, on-spec), `"center"`, or `"right"`.
 - Embed a newline (`\n`) in the text for multi-line captions.
-
-`add_caption()` remains available for compatibility. Prefer
-[`frame()`](charts.qmd#publication-frame) for new publication charts because it
-also requires an accessibility description and supports notes, sources, and a
-byline.

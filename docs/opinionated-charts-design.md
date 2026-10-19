@@ -1,4 +1,4 @@
-# Opinionated chart factories
+# Opinionated chart templates
 
 Status: implemented
 
@@ -9,15 +9,15 @@ semantic field names while preserving ordinary Altair chart objects.
 ## Governing decisions
 
 - Callers enable the Attaviz theme explicitly with `attaviz.enable()`.
-- Factories return standard Altair chart types and never mutate input data.
+- Templates return standard Altair chart types and never mutate input data.
 - Data mappings are keyword-only and use column names, not Altair shorthand.
-- Input data must already be summarized where the chart requires it. Factories
+- Input data must already be summarized where the chart requires it. Templates
   never aggregate silently.
-- Factories expose recurring editorial decisions, not arbitrary Vega-Lite
+- Templates expose recurring editorial decisions, not arbitrary Vega-Lite
   options. Advanced customization happens through Altair after construction.
 - The first release accepts pandas DataFrames. GeoPandas DataFrames work through
   inheritance.
-- No factory accepts `**kwargs`.
+- No template accepts `**kwargs`.
 
 ## Public interface
 
@@ -88,7 +88,7 @@ attaviz.line(
 
 - Without `series`, each `x` value must be unique.
 - With `series`, each `(x, series)` pair must be unique.
-- Duplicate keys raise `ValueError`; the factory never aggregates them.
+- Duplicate keys raise `ValueError`; the template never aggregates them.
 - Rows are sorted by `x` before rendering.
 - Numeric and temporal x fields are inferred from DataFrame dtypes. String
   dates are not coerced automatically.
@@ -169,7 +169,7 @@ attaviz.frame(
 - `add_caption()` remains available for compatibility but is not the preferred
   interface for new publication charts.
 
-Title and subtitle remain factory arguments so a basic chart does not require
+Title and subtitle remain template arguments so a basic chart does not require
 a separate framing call during exploration.
 
 ## Editorial composition helpers
@@ -268,7 +268,7 @@ default heights. An explicit numeric `height` overrides either behavior.
 Existing `configure_size()` remains supported for post-construction changes.
 
 Attaviz does not change chart type or editorial layout at mobile breakpoints.
-That behavior belongs in a host application rather than these factories.
+That behavior belongs in a host application rather than these templates.
 
 ## Validation policy
 
@@ -303,11 +303,11 @@ The following are normal behavior and do not warn:
    independent axis formats follow this document.
 4. Implement `add_annotation()`, `add_reference_line()`, and
    `add_reference_range()`. Completion: every helper composes with all three
-   factory outputs.
+   template outputs.
 5. Implement `frame()`. Completion: accessibility metadata and optional footer
    fields survive HTML and static serialization.
 6. Update the public documentation and gallery. Completion: the quickstart
-   uses a factory, every new public function has reference documentation, and
+   uses a template, every new public function has reference documentation, and
    the gallery contains representative bar, line, scatter, annotation,
    reference, highlight, responsive, currency, and framed examples.
 

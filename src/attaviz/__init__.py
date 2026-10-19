@@ -113,7 +113,7 @@ __all__ = [
     # Caption and interaction helpers
     "add_caption",
     "add_hover",
-    # Opinionated chart factories and composition helpers
+    # Opinionated chart templates and composition helpers
     "bar",
     "line",
     "scatter",
@@ -250,6 +250,10 @@ def add_caption(
     ...     align="right"
     ... )
     """
+    # Vega-Lite ignores container width inside concat, so pin it first.
+    if getattr(chart, "width", alt.Undefined) == "container":
+        chart = chart.properties(width=DEFAULT_DIMENSIONS["medium"][0])
+
     # Detect width from chart
     width = getattr(chart, "width", None)
     if not isinstance(width, int):

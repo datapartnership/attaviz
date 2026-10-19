@@ -253,7 +253,7 @@ def test_categorical_legends_use_uppercase_labels():
     assert scatter.to_dict()["encoding"]["color"]["legend"]["labelExpr"] == upper
 
 
-def test_factory_axes_humanize_fields_and_auto_format_rounds_integer_ticks():
+def test_template_axes_humanize_fields_and_auto_format_rounds_integer_ticks():
     data = pd.DataFrame({"horse_power": [50, 100], "miles_per_gallon": [20, 30]})
 
     spec = attaviz.scatter(data, x="horse_power", y="miles_per_gallon").to_dict()

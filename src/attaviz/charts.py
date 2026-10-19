@@ -1,4 +1,4 @@
-"""Opinionated editorial chart factories and composition helpers."""
+"""Opinionated editorial chart templates and composition helpers."""
 
 from __future__ import annotations
 
@@ -218,7 +218,72 @@ def bar(
     width: int | Literal["responsive"] = "responsive",
     height: int | None = None,
 ) -> alt.Chart | alt.LayerChart:
-    """Create a publication-ready horizontal bar chart."""
+    """Create a publication-ready horizontal bar chart.
+
+    The data must already be summarized: one row per category, or one row per
+    ``(category, series)`` pair for stacked bars. The function never aggregates.
+
+    Parameters
+    ----------
+    data
+        Non-empty pandas DataFrame. The function works on a copy.
+    category
+        Column with the bar labels.
+    value
+        Numeric column with the bar lengths.
+    series
+        Optional column that splits each bar into stacked segments. Stacked
+        values must be non-negative. Segment labels under 8% of the category
+        total are hidden.
+    title, subtitle
+        Chart title and subtitle. A subtitle requires a title.
+    sort
+        ``"descending"`` (default), ``"ascending"``, ``"data"`` (keep row
+        order), or an explicit sequence of categories.
+    labels
+        Show value labels at the end of each bar.
+    highlight
+        One category or a sequence of categories to emphasize.
+    value_format
+        ``"auto"``, ``"integer"``, ``"decimal"``, ``"percent"``, ``"currency"``,
+        or a D3 number-format string.
+    currency
+        Currency code such as ``"USD"``. Required with ``value_format="currency"``
+        and rejected with any other format.
+    width
+        ``"responsive"`` (default) fills the parent HTML container. Pass a
+        positive integer for a fixed width, for example in static exports.
+    height
+        Positive integer height in pixels. Defaults to a height based on the data.
+
+    Returns
+    -------
+    alt.Chart or alt.LayerChart
+        An ordinary Altair chart that you can customize further.
+
+    Raises
+    ------
+    TypeError
+        If ``data`` is not a DataFrame or ``value`` is not numeric.
+    ValueError
+        If a column is missing, a key is duplicated, a highlight is unknown,
+        or stacked values are negative or total zero.
+
+    Warns
+    -----
+    UserWarning
+        When rows with a missing category or value are dropped.
+
+    Examples
+    --------
+    >>> chart = attaviz.bar(
+    ...     data,
+    ...     category="country",
+    ...     value="population",
+    ...     title="Population by country",
+    ...     highlight="Indonesia",
+    ... )
+    """
     source = _dataframe(data)
     _columns(source, category, value, series)
     _numeric(source, value)
@@ -451,7 +516,69 @@ def line(
     width: int | Literal["responsive"] = "responsive",
     height: int | None = None,
 ) -> alt.LayerChart:
-    """Create a publication-ready single- or multi-series line chart."""
+    """Create a publication-ready single- or multi-series line chart.
+
+    Each ``x`` value must be unique, or each ``(x, series)`` pair when
+    ``series`` is set. Duplicates raise an error; the function never aggregates.
+
+    Parameters
+    ----------
+    data
+        Non-empty pandas DataFrame. The function works on a copy.
+    x
+        Numeric or temporal column for the horizontal axis.
+    y
+        Numeric column for the vertical axis. Missing values create gaps.
+    series
+        Optional column that draws one line per group.
+    title, subtitle
+        Chart title and subtitle. A subtitle requires a title.
+    highlight
+        One series or a sequence of series to emphasize. Requires ``series``.
+    end_labels
+        Label line ends directly. Applies only up to five series; with more
+        series, or with ``end_labels=False``, the chart uses a legend.
+    points
+        Add a point mark at each observation.
+    zero
+        Include zero in the y-axis domain.
+    value_format
+        ``"auto"``, ``"integer"``, ``"decimal"``, ``"percent"``, ``"currency"``,
+        or a D3 number-format string.
+    currency
+        Currency code such as ``"USD"``. Required with ``value_format="currency"``.
+    date_format
+        ``"auto"``, ``"day"``, ``"month"``, ``"month_year"``, ``"year"``, or a
+        D3 time-format string. Preformat quarters and fiscal years as strings.
+    width
+        ``"responsive"`` (default) fills the parent HTML container. Pass a
+        positive integer for a fixed width, for example in static exports.
+    height
+        Positive integer height in pixels. Defaults to a height based on the data.
+
+    Returns
+    -------
+    alt.LayerChart
+        An ordinary Altair chart with a built-in hover tooltip.
+
+    Raises
+    ------
+    TypeError
+        If ``x`` is not numeric or temporal, or ``y`` is not numeric.
+    ValueError
+        If a column is missing, a key is duplicated, or ``highlight`` is used
+        without ``series``.
+
+    Examples
+    --------
+    >>> chart = attaviz.line(
+    ...     data,
+    ...     x="year",
+    ...     y="population",
+    ...     series="country",
+    ...     highlight="Indonesia",
+    ... )
+    """
     source = _dataframe(data)
     _columns(source, x, y, series)
     _numeric(source, y)
@@ -568,7 +695,67 @@ def scatter(
     width: int | Literal["responsive"] = "responsive",
     height: int | None = None,
 ) -> alt.Chart | alt.LayerChart:
-    """Create a publication-ready scatter chart."""
+    """Create a publication-ready scatter chart.
+
+    Each row is one observation. Duplicate coordinates are valid.
+
+    Parameters
+    ----------
+    data
+        Non-empty pandas DataFrame. The function works on a copy.
+    x, y
+        Numeric columns for the two axes.
+    label
+        Column that identifies each observation in tooltips and highlights.
+    series
+        Optional column that colors observations by group.
+    title, subtitle
+        Chart title and subtitle. A subtitle requires a title.
+    highlight
+        One label or a sequence of labels. Highlighted points are drawn on
+        top, labeled directly, and the other points are muted. Requires ``label``.
+    x_zero, y_zero
+        Include zero in the x-axis or y-axis domain.
+    x_format, y_format
+        ``"auto"``, ``"integer"``, ``"decimal"``, ``"percent"``, ``"currency"``,
+        or a D3 number-format string.
+    x_currency, y_currency
+        Currency codes for the matching ``"currency"`` format.
+    width
+        ``"responsive"`` (default) fills the parent HTML container. Pass a
+        positive integer for a fixed width, for example in static exports.
+    height
+        Positive integer height in pixels. Defaults to a height based on the data.
+
+    Returns
+    -------
+    alt.Chart or alt.LayerChart
+        An ordinary Altair chart that you can customize further.
+
+    Raises
+    ------
+    TypeError
+        If ``x`` or ``y`` is not numeric.
+    ValueError
+        If a column is missing, a highlight is unknown, or ``highlight`` is
+        used without ``label``.
+
+    Warns
+    -----
+    UserWarning
+        When rows with a missing x or y value are dropped.
+
+    Examples
+    --------
+    >>> chart = attaviz.scatter(
+    ...     data,
+    ...     x="income",
+    ...     y="life_expectancy",
+    ...     label="country",
+    ...     series="region",
+    ...     highlight=["Indonesia", "Malaysia"],
+    ... )
+    """
     source = _dataframe(data)
     _columns(source, x, y, label, series)
     _numeric(source, x, y)

@@ -26,7 +26,6 @@ attaviz.enable()
 These examples use Altair directly. Attaviz supplies the visual defaults while
 Altair supplies the chart specification.
 
-
 ## Bar chart
 
 ::: {.panel-tabset .gallery-example}
@@ -40,11 +39,11 @@ source = data.barley()
 alt.Chart(
     source,
     title=alt.Title(
-        "Barley Yield by Site",
+        "Waseca had the highest barley yield",
         subtitle="Mean yield across varieties and years (bushels/acre)",
     ),
 ).mark_bar().encode(
-    x=alt.X("mean(yield):Q", title="Mean Yield"),
+    x=alt.X("mean(yield):Q", title="Mean yield"),
     y=alt.Y("site:N", title="Site", sort="-x"),
     color=alt.value(attaviz.CATEGORICAL[0]),
 ).properties(width="container", height=300)
@@ -70,7 +69,8 @@ source = data.stocks()
 alt.Chart(
     source,
     title=alt.Title(
-        "Stock Prices 2000–2010", subtitle="Monthly closing price by company"
+        "Apple's stock price rose the most",
+        subtitle="Monthly closing price by company, 2000–2010",
     ),
 ).mark_line().encode(
     x=alt.X("date:T", title=None),
@@ -100,7 +100,8 @@ lines = (
     alt.Chart(
         source,
         title=alt.Title(
-            "Stock Prices 2000–2010", subtitle="Hover to compare companies at a date"
+            "Apple's stock price rose the most",
+            subtitle="Hover to compare companies at a date, 2000–2010",
         ),
     )
     .mark_line()
@@ -135,17 +136,17 @@ source = data.cars()
 alt.Chart(
     source,
     title=alt.Title(
-        "Horsepower vs. Fuel Efficiency",
+        "Cars with more horsepower travel fewer miles per gallon",
         subtitle="Relationship between engine power and mileage by origin",
     ),
 ).mark_circle(size=80).encode(
     x=alt.X("Horsepower:Q"),
-    y=alt.Y("Miles_per_Gallon:Q", title="Miles per Gallon"),
+    y=alt.Y("Miles_per_Gallon:Q", title="Miles per gallon"),
     color=alt.Color("Origin:N", title="Origin"),
     tooltip=[
         "Name:N",
         "Horsepower:Q",
-        alt.Tooltip("Miles_per_Gallon:Q", title="Miles per Gallon"),
+        alt.Tooltip("Miles_per_Gallon:Q", title="Miles per gallon"),
     ],
 ).properties(width="container", height=380)
 ```
@@ -170,11 +171,12 @@ source = data.iowa_electricity()
 alt.Chart(
     source,
     title=alt.Title(
-        "Iowa Electricity Generation", subtitle="Net generation by source (GWh)"
+        "Renewable electricity in Iowa grew fifteenfold",
+        subtitle="Net generation by source (GWh), 2001–2017",
     ),
 ).mark_area().encode(
     x=alt.X("year:T", title=None),
-    y=alt.Y("net_generation:Q", title="Net Generation (GWh)"),
+    y=alt.Y("net_generation:Q", title="Net generation (GWh)"),
     color=alt.Color("source:N", title="Source"),
 ).properties(width="container", height=350)
 ```
@@ -199,13 +201,13 @@ source = data.seattle_weather()
 alt.Chart(
     source,
     title=alt.Title(
-        "Seattle Monthly Max Temperatures",
-        subtitle="Average daily maximum temperature (°F) by month",
+        "Seattle is warmest in July and August",
+        subtitle="Average daily maximum temperature (°C) by month",
     ),
 ).mark_rect().encode(
     x=alt.X("month(date):O", title="Month"),
     y=alt.Y("year(date):O", title="Year", axis=alt.Axis(grid=False)),
-    color=alt.Color("mean(temp_max):Q", title="Avg Max Temp (°F)"),
+    color=alt.Color("mean(temp_max):Q", title="Average maximum temperature (°C)"),
 ).properties(width="container", height=250)
 ```
 
@@ -216,133 +218,6 @@ alt.Chart(
 <div class="gallery-code"></div>
 
 :::
-
-# Opinionated factories
-
-These examples use Attaviz factories and composition helpers to handle common
-editorial decisions.
-
-
-## Opinionated bar with highlight and publication frame
-
-::: {.panel-tabset .gallery-example}
-
-### Output
-
-
-```{python}
-source = pd.read_csv("data/wdi-southeast-asia-2023.csv")
-
-chart = attaviz.bar(
-    source,
-    category="country",
-    value="gdp",
-    title="Indonesia has Southeast Asia's largest economy",
-    subtitle="Current-price GDP, 2023",
-    highlight="Indonesia",
-    value_format="currency",
-    currency="USD",
-)
-
-attaviz.frame(
-    chart,
-    description="Horizontal bars comparing GDP in five Southeast Asian economies; Indonesia is highlighted.",
-    source="World Development Indicators",
-    source_url="https://databank.worldbank.org/source/world-development-indicators",
-)
-```
-
-
-### Code
-
-<div class="gallery-code"></div>
-
-:::
-
-## Opinionated line with annotation and reference
-
-::: {.panel-tabset .gallery-example}
-
-### Output
-
-
-```{python}
-source = data.stocks().query("symbol in ['AAPL', 'MSFT', 'GOOG']")
-
-chart = attaviz.line(
-    source,
-    x="date",
-    y="price",
-    series="symbol",
-    title="Technology stocks followed different paths",
-    subtitle="Monthly closing price, 2000–2010",
-    highlight="AAPL",
-    width="responsive",
-)
-
-chart = attaviz.add_reference_line(
-    chart,
-    value=500,
-    axis="y",
-    label="500",
-)
-
-attaviz.add_annotation(
-    chart,
-    x=pd.Timestamp("2007-12-01"),
-    y=198.08,
-    text="Apple approached 200",
-    position="above",
-)
-```
-
-
-### Code
-
-<div class="gallery-code"></div>
-
-:::
-
-## Opinionated scatter with highlight and reference range
-
-::: {.panel-tabset .gallery-example}
-
-### Output
-
-
-```{python}
-source = data.cars().dropna(subset=["Horsepower", "Miles_per_Gallon", "Name"])
-
-chart = attaviz.scatter(
-    source,
-    x="Horsepower",
-    y="Miles_per_Gallon",
-    label="Name",
-    series="Origin",
-    highlight="honda civic",
-    title="More powerful cars tend to use more fuel",
-    subtitle="Horsepower and fuel economy",
-)
-
-attaviz.add_reference_range(
-    chart,
-    start=25,
-    end=35,
-    axis="y",
-    label="25–35 mpg",
-)
-```
-
-
-
-### Code
-
-<div class="gallery-code"></div>
-
-:::
-
-# More theme and utility examples
-
 
 ## Histogram
 
@@ -357,12 +232,12 @@ source = data.movies()
 alt.Chart(
     source,
     title=alt.Title(
-        "Distribution of IMDB Ratings",
-        subtitle="Histogram of movie ratings from the IMDB database",
+        "Most movies rate between 5 and 8 on IMDb",
+        subtitle="Number of movies by IMDb rating",
     ),
 ).mark_bar().encode(
-    x=alt.X("IMDB_Rating:Q", bin=alt.Bin(maxbins=30), title="IMDB Rating"),
-    y=alt.Y("count()", title="Number of Movies"),
+    x=alt.X("IMDB_Rating:Q", bin=alt.Bin(maxbins=30), title="IMDb rating"),
+    y=alt.Y("count()", title="Number of movies"),
     color=alt.value(attaviz.CATEGORICAL[0]),
 ).properties(width="container", height=300)
 ```
@@ -387,7 +262,7 @@ source = data.us_employment()
 alt.Chart(
     source,
     title=alt.Title(
-        "US Nonfarm Employment Change",
+        "The United States lost jobs in most months of 2008 and 2009",
         subtitle="Monthly change in nonfarm payrolls (thousands), 2006–2015",
     ),
 ).mark_bar().encode(
@@ -412,7 +287,7 @@ alt.Chart(
 
 :::
 
-## Faceted small multiples
+## Faceted scatter plot
 
 ::: {.panel-tabset .gallery-example}
 
@@ -425,8 +300,8 @@ source = data.iris()
 alt.Chart(
     source,
 ).mark_circle(size=60).encode(
-    x=alt.X("sepalLength:Q", title="Sepal Length"),
-    y=alt.Y("petalLength:Q", title="Petal Length"),
+    x=alt.X("sepalLength:Q", title="Sepal length"),
+    y=alt.Y("petalLength:Q", title="Petal length"),
     color=alt.Color("species:N", title="Species"),
 ).properties(
     width=200,
@@ -435,82 +310,11 @@ alt.Chart(
     column=alt.Column("species:N", title=None),
 ).properties(
     title=alt.Title(
-        "Iris Measurements by Species", subtitle="Sepal vs. petal dimensions"
+        "Setosa irises have much shorter petals",
+        subtitle="Sepal and petal length (cm) by species",
     )
 )
 ```
-
-
-### Code
-
-<div class="gallery-code"></div>
-
-:::
-
-## Title, subtitle, and caption
-
-::: {.panel-tabset .gallery-example}
-
-### Output
-
-
-```{python}
-source = data.barley()
-
-chart = (
-    alt.Chart(
-        source,
-        title=alt.Title(
-            "Barley Yield by Site",
-            subtitle="Mean yield across varieties and years (bushels/acre)",
-        ),
-    )
-    .mark_bar()
-    .encode(
-        x=alt.X("mean(yield):Q", title="Mean Yield"),
-        y=alt.Y("site:N", sort="-x", title=None),
-        color=alt.value(attaviz.CATEGORICAL[0]),
-    )
-    .properties(width="container", height=300)
-)
-
-attaviz.add_caption(chart, "Source: Minnesota agricultural experiment stations, 1931–1932")
-```
-
-
-### Code
-
-<div class="gallery-code"></div>
-
-:::
-
-## Formatted axis labels
-
-::: {.panel-tabset .gallery-example}
-
-### Output
-
-
-```{python}
-source = data.gapminder().query("year == 2005").nlargest(5, "pop")
-
-alt.Chart(
-    source,
-    title=alt.Title(
-        "Most Populous Countries",
-        subtitle="Axis formatted via d3_number_format",
-    ),
-).mark_bar().encode(
-    x=alt.X(
-        "pop:Q",
-        title="Population",
-        axis=alt.Axis(format=attaviz.d3_number_format(decimals=0)),
-    ),
-    y=alt.Y("country:N", sort="-x", title=None),
-    color=alt.value(attaviz.CATEGORICAL[0]),
-).properties(width="container", height=250)
-```
-
 
 
 ### Code
@@ -521,8 +325,7 @@ alt.Chart(
 
 # More chart types
 
-
-## Small multiples
+## Small multiple line charts
 
 ::: {.panel-tabset .gallery-example}
 
@@ -647,7 +450,11 @@ chart = alt.Chart(source).mark_area().encode(
     ),
 )
 
-attaviz.add_caption(chart, "Source: World Development Indicators")
+attaviz.frame(
+    chart,
+    description="Stacked area chart of Indonesia's employment by sector from 2000 to 2024; the services share rises from 38% to 50% while agriculture falls from 45% to 28%.",
+    source="World Development Indicators",
+)
 ```
 
 
@@ -732,7 +539,11 @@ chart = (band + estimate).properties(
     ),
 )
 
-attaviz.add_caption(chart, "Source: World Bank Human Capital Index database")
+attaviz.frame(
+    chart,
+    description="Lines with uncertainty bands showing the Human Capital Index for five Southeast Asian countries between 2010 and 2020.",
+    source="World Bank Human Capital Index database",
+)
 ```
 
 
@@ -742,7 +553,7 @@ attaviz.add_caption(chart, "Source: World Bank Human Capital Index database")
 
 :::
 
-## Bubble scatterplot
+## Bubble scatter plot
 
 ::: {.panel-tabset .gallery-example}
 
@@ -759,7 +570,7 @@ alt.Chart(source).mark_circle(opacity=0.75, stroke="white", strokeWidth=1).encod
         "population:Q",
         title="Population",
         scale=alt.Scale(range=[80, 1_200]),
-        legend=alt.Legend(orient="right", direction="vertical"),
+        legend=alt.Legend(values=[50e6, 150e6, 250e6], format="~s"),
     ),
     color=alt.Color(
         "income_group:N",
@@ -806,7 +617,7 @@ base = alt.Chart(source).encode(
 )
 lines = base.mark_line(strokeWidth=2)
 points = base.mark_circle(size=70)
-labels = base.transform_filter(alt.datum.year == 2023).mark_text(align="left", dx=8).encode(
+labels = base.transform_filter(alt.datum.year == 2010).mark_text(align="right", dx=-8).encode(
     text="country:N"
 )
 
@@ -814,12 +625,254 @@ chart = (lines + points + labels).properties(
     width="container",
     height=300,
     title=alt.Title(
-        "Electricity access expanded across Southeast Asia",
+        "Cambodia made the largest gain in electricity access",
         subtitle="Share of population with access, 2010 and 2023",
     ),
 )
 
-attaviz.add_caption(chart, "Source: World Development Indicators")
+attaviz.frame(
+    chart,
+    description="Slope chart of electricity access in five Southeast Asian countries from 2010 to 2023; Cambodia rose from 31% to 95%.",
+    source="World Development Indicators",
+)
+```
+
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+# Formatting and captions
+
+These examples use Attaviz helpers for captions, publication frames, and
+number formats.
+
+## Title, subtitle, and source
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = data.barley()
+
+chart = (
+    alt.Chart(
+        source,
+        title=alt.Title(
+            "Waseca had the highest barley yield",
+            subtitle="Mean yield across varieties and years (bushels/acre)",
+        ),
+    )
+    .mark_bar()
+    .encode(
+        x=alt.X("mean(yield):Q", title="Mean yield"),
+        y=alt.Y("site:N", sort="-x", title=None),
+        color=alt.value(attaviz.CATEGORICAL[0]),
+    )
+    .properties(width="container", height=300)
+)
+
+attaviz.frame(
+    chart,
+    description="Horizontal bars comparing mean barley yield at six sites; Waseca is highest.",
+    source="Minnesota agricultural experiment stations, 1931–1932",
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Formatted axis labels
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = data.gapminder().query("year == 2005").nlargest(5, "pop")
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "China and India have the largest populations",
+        subtitle="Population, 2005, axis formatted with d3_number_format",
+    ),
+).mark_bar().encode(
+    x=alt.X(
+        "pop:Q",
+        title="Population",
+        axis=alt.Axis(format=attaviz.d3_number_format(decimals=0)),
+    ),
+    y=alt.Y("country:N", sort="-x", title=None),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+).properties(width="container", height=250)
+```
+
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Auto-scaled with `vega_scale_labelExpr`
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = data.gapminder().query("year == 2005").nlargest(5, "pop")
+
+alt.Chart(
+    source,
+    title=alt.Title(
+        "China and India have the largest populations",
+        subtitle="Population, 2005, axis auto-scaled to K/M/B per tick",
+    ),
+).mark_bar().encode(
+    x=alt.X(
+        "pop:Q",
+        title="Population",
+        axis=alt.Axis(labelExpr=attaviz.vega_scale_labelExpr()),
+    ),
+    y=alt.Y("country:N", sort="-x", title=None),
+    color=alt.value(attaviz.CATEGORICAL[0]),
+    tooltip=alt.Tooltip("pop:Q", format=attaviz.d3_number_format(decimals=0))
+).properties(width="container", height=250)
+```
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+# Chart templates
+
+These examples use Attaviz chart templates and composition helpers to handle
+common editorial decisions.
+
+## Bar chart with highlight and publication frame
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = pd.read_csv("data/wdi-southeast-asia-2023.csv")
+
+chart = attaviz.bar(
+    source,
+    category="country",
+    value="gdp",
+    title="Indonesia has Southeast Asia's largest economy",
+    subtitle="Current-price GDP, 2023",
+    highlight="Indonesia",
+    value_format="currency",
+    currency="USD",
+)
+
+attaviz.frame(
+    chart,
+    description="Horizontal bars comparing GDP in five Southeast Asian economies; Indonesia is highlighted.",
+    source="World Development Indicators",
+    source_url="https://databank.worldbank.org/source/world-development-indicators",
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Line chart with annotation and reference line
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = data.stocks().query("symbol in ['AAPL', 'MSFT', 'GOOG']")
+
+chart = attaviz.line(
+    source,
+    x="date",
+    y="price",
+    series="symbol",
+    title="Technology stocks followed different paths",
+    subtitle="Monthly closing price, 2000–2010",
+    highlight="AAPL",
+    width="responsive",
+)
+
+chart = attaviz.add_reference_line(
+    chart,
+    value=500,
+    axis="y",
+    label="500",
+)
+
+attaviz.add_annotation(
+    chart,
+    x=pd.Timestamp("2007-12-01"),
+    y=198.08,
+    text="Apple approached 200",
+    position="above",
+)
+```
+
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Scatter plot with highlight and reference range
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+
+```{python}
+source = data.cars().dropna(subset=["Horsepower", "Miles_per_Gallon", "Name"])
+
+chart = attaviz.scatter(
+    source,
+    x="Horsepower",
+    y="Miles_per_Gallon",
+    label="Name",
+    series="Origin",
+    highlight="honda civic",
+    title="More powerful cars tend to use more fuel",
+    subtitle="Horsepower and fuel economy",
+)
+
+attaviz.add_reference_range(
+    chart,
+    start=25,
+    end=35,
+    axis="y",
+    label="25–35 mpg",
+)
 ```
 
 
@@ -832,9 +885,8 @@ attaviz.add_caption(chart, "Source: World Development Indicators")
 
 # Maps
 
-Map factories handle geometry validation, projection, missing values,
-classification, legends, and tooltips.
-
+Use `choropleth()` for area maps. For other map types, such as point maps, use
+Altair with the theme enabled.
 
 ## Choropleth map
 
@@ -892,7 +944,7 @@ attaviz.frame(
 ```{python}
 continuous_countries = countries.copy()
 continuous_countries.loc[
-    continuous_countries["country"] == "Brunei", "gdp_per_capita"
+    continuous_countries["country"] == "Myanmar", "gdp_per_capita"
 ] = None
 
 chart = attaviz.choropleth(
@@ -902,7 +954,7 @@ chart = attaviz.choropleth(
     value_label="GDP per capita (USD)",
     value_format=",.0f",
     title="Missing values remain visible",
-    subtitle="Continuous scale with Brunei shown as no data",
+    subtitle="Continuous scale with Myanmar shown as no data",
     projection="mercator",
     width=700,
     height=450,
@@ -1008,42 +1060,6 @@ points = alt.Chart(capitals).mark_circle(
 ```
 
 
-
-### Code
-
-<div class="gallery-code"></div>
-
-:::
-
-# Formatting utility
-
-## Auto-scaled with `vega_scale_labelExpr`
-
-::: {.panel-tabset .gallery-example}
-
-### Output
-
-
-```{python}
-source = data.gapminder().query("year == 2005").nlargest(5, "pop")
-
-alt.Chart(
-    source,
-    title=alt.Title(
-        "Most Populous Countries",
-        subtitle="Raw values, axis auto-scaled to K/M/B per tick",
-    ),
-).mark_bar().encode(
-    x=alt.X(
-        "pop:Q",
-        title="Population",
-        axis=alt.Axis(labelExpr=attaviz.vega_scale_labelExpr()),
-    ),
-    y=alt.Y("country:N", sort="-x", title=None),
-    color=alt.value(attaviz.CATEGORICAL[0]),
-    tooltip=alt.Tooltip("pop:Q", format=attaviz.d3_number_format(decimals=0))
-).properties(width="container", height=250)
-```
 
 ### Code
 

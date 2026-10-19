@@ -53,4 +53,4 @@ uv run ruff format --check .
 ```
 
 Install [Quarto](https://quarto.org/docs/get-started/) separately, then render
-the documentation with `quarto render docs`.
+the documentation with `uv run quarto render docs`.
