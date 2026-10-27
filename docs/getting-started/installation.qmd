@@ -26,9 +26,19 @@ pip install "attaviz[maps]"
 
 Keep the extra in quotes so shells do not expand the brackets.
 
+For styled tables powered by Great Tables:
+
+```bash
+uv add "attaviz[tables]"
+# or
+pip install "attaviz[tables]"
+```
+
+Install both with `pip install "attaviz[maps,tables]"`.
+
 ## Requirements
 
-- Python 3.9 or newer
+- Python 3.11 or newer
 - Altair 5 or newer
 
 Dependencies (`altair`, `pandas`, `pyarrow`, `vegafusion`, `vl-convert-python`) install

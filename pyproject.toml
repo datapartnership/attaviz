@@ -7,7 +7,7 @@ name = "attaviz"
 version = "0.1.0"
 description = "Publication-ready World Bank Group charts and maps for Altair"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = {text = "MPL-2.0"}
 dependencies = [
     "altair>=5.0",
@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 maps = ["geopandas>=1.0"]
+tables = ["great-tables>=1.1.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -26,6 +27,7 @@ where = ["src"]
 [dependency-groups]
 dev = [
     "geopandas>=1.0",
+    "great-tables>=1.1.0",
     "ipykernel>=6.31.0",
     "ipython>=8.18.1",
     "jupyter>=1.1.1",
@@ -37,6 +39,7 @@ dev = [
 ]
 docs = [
     "geopandas>=1.0",
+    "great-tables>=1.1.0",
     "jupyter>=1.1.1",
     "pandas>=2.3.3",
     "vega-datasets>=0.9.0",

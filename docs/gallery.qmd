@@ -7,7 +7,7 @@ code-summary: "Show code"
 ---
 
 
-A visual showcase of common chart types with the WBG theme enabled.
+A visual showcase of charts, maps, and tables styled with Attaviz.
 
 
 ```{python}
@@ -1060,6 +1060,75 @@ points = alt.Chart(capitals).mark_circle(
 ```
 
 
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+# Tables
+
+Install `attaviz[tables]` to use the table helper. It returns a native Great Tables object with Attaviz styling; use Great Tables methods for column labels and formatting.
+
+## Counts and percentages
+
+Format counts with thousands separators and fractions as percentages. Missing values display as `N/A`.
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+```{python}
+participation = pd.DataFrame(
+    {
+        "country": ["Indonesia", "Malaysia", "Philippines"],
+        "participants": [12345, 8900, 6750],
+        "completion": [0.876, 0.923, None],
+    }
+)
+
+participation_table = (
+    attaviz.table(
+        participation,
+        title="Program participation by country",
+        subtitle="Illustrative counts and completion rates",
+        source="Source: illustrative data. N/A indicates unavailable data.",
+    )
+    .cols_label(country="Country", participants="Participants", completion="Completion")
+    .fmt_integer(columns="participants")
+    .fmt_percent(columns="completion", decimals=1)
+)
+
+participation_table
+```
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Grouped columns and a footnote
+
+Build on the table above using Great Tables' native methods. Group the numeric columns under a shared heading and attach a definition to the completion column.
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+```{python}
+from great_tables import loc
+
+(
+    participation_table
+    .tab_spanner(label="Program results", columns=["participants", "completion"])
+    .tab_footnote(
+        "Completion is the share of participants who finished the program.",
+        locations=loc.column_labels(columns="completion"),
+    )
+)
+```
 
 ### Code
 

@@ -14,6 +14,7 @@ pip install attaviz
 ```
 
 Add the optional `maps` extra for choropleths: `pip install "attaviz[maps]"`.
+Add the optional `tables` extra for styled Great Tables: `pip install "attaviz[tables]"`.
 
 ## Quick start
 
