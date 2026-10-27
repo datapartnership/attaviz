@@ -65,8 +65,7 @@ swatch(attaviz.CATEGORICAL)
 hex_table("CATEGORICAL")
 ```
 
-An accessible text-contrast variant is available when categorical colors are
-applied to text rather than marks:
+An accessible text-contrast variant is available when categorical colors are applied to text rather than marks:
 
 ```{python}
 #| echo: false
@@ -132,8 +131,7 @@ hex_table("SEQ_BAD_TO_GOOD", "SEQ_GOOD_TO_BAD")
 
 ## Diverging
 
-Three diverging palettes with a neutral midpoint (`#EFEFEF`). Pair with
-`domainMid=0` for symmetric scales centered at zero:
+Three diverging palettes with a neutral midpoint (`#EFEFEF`). Pair with `domainMid=0` for symmetric scales centered at zero:
 
 ```python
 alt.Chart(data).mark_bar().encode(

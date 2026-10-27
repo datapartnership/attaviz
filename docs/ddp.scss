@@ -132,6 +132,13 @@ footer.footer a {
   text-decoration: none;
 }
 
+p code,
+li code,
+pre.sourceCode code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 footer.footer,
 footer.footer .nav-footer {
   color: white;

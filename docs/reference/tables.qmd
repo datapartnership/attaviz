@@ -2,55 +2,255 @@
 title: "Tables"
 ---
 
-`attaviz.table()` styles a pandas DataFrame using [Great Tables](https://posit-dev.github.io/great-tables/). Install the optional dependency with `pip install "attaviz[tables]"`. Tables do not require `attaviz.enable()`.
+Use `attaviz.table()` to create a publication table from a pandas DataFrame.
+It supplies Attaviz typography, colors, alignment, and spacing, then returns a
+native [Great Tables](https://posit-dev.github.io/great-tables/) `GT` object.
+Chain Great Tables methods to format values, rename columns, and add footnotes.
+
+## Install table support
+
+```bash
+uv add "attaviz[tables]"
+# or
+pip install "attaviz[tables]"
+```
+
+Tables work without calling `attaviz.enable()`.
+
+## Create your first table
+
+Start with one row per observation and keep numbers numeric. These illustrative
+observations include a missing completion rate to show how missing data appears.
+The final `table` expression displays the result in a notebook or Quarto page.
+
+```{python}
+import pandas as pd
+import attaviz
+
+participation = pd.DataFrame({
+    "country": ["Indonesia", "Malaysia", "Philippines"],
+    "participants": [12345, 8900, 6750],
+    "completion": [0.876, 0.923, None],
+    "funding": [1250000, 920000, 740000],
+})
+
+table = attaviz.table(
+    participation,
+    title="Program participation by country",
+    subtitle="Illustrative counts, completion rates, and funding",
+    source="Source: illustrative example data. N/A indicates unavailable data.",
+)
+table
+```
+
+The table preserves row order and numeric precision. Missing cells display as
+`N/A`; numeric columns align right and text columns align left. Include the
+“Source:” prefix yourself. Tables use their own title, subtitle, and source
+arguments; the chart `frame()` helper does not apply to tables.
+
+## Format counts, percentages, and currency
+
+Use the original column names in formatting methods, even after changing their
+display labels with `cols_label()`:
+
+```{python}
+formatted = (
+    table
+    .cols_label(
+        country="Country",
+        participants="Participants",
+        completion="Completion",
+        funding="Funding (USD)",
+    )
+    .fmt_integer(columns="participants")
+    .fmt_percent(columns="completion", decimals=1)
+    .fmt_currency(columns="funding", currency="USD", decimals=0)
+)
+formatted
+```
+
+The first row now shows `12,345`, `87.6%`, and `$1,250,000`. Percent formatting
+expects fractions: store `0.876` for `87.6%`. If your data already contains
+`87.6`, use `.fmt_percent(columns="completion", decimals=1, scale_values=False)`.
+For ordinary decimal values, use `.fmt_number(columns="column_name", decimals=1)`.
+
+These methods change the display while retaining the underlying values. D3
+number/date strings are for Altair charts; use Great Tables formatting methods
+for tables.
+
+## Keep related columns close
+
+Tables size to their content instead of stretching across the page. Put the
+record identifier first and related measures next to each other. Use native
+`cols_width()` to give longer labels enough room while keeping numeric columns
+compact. Headers and body text wrap without ellipses or hover-only disclosure:
+
+```{python}
+formatted.cols_label(
+    completion="Completed the program (%)",
+).cols_width(
+    country="150px",
+    participants="120px",
+    completion="140px",
+    funding="140px",
+)
+```
+
+Give each column enough room for its longest formatted value. Setting every
+column width in pixels fixes the table to those widths; headers can still wrap.
+A narrow page scrolls the table horizontally instead of hiding data.
+For a table that should fill its container, use
+`formatted.tab_options(table_width="100%")`.
+
+## Row density and wide tables
+
+The default uses 6 px vertical cell padding, 9 px horizontal padding, and 1.5
+line height. Wrapped body text aligns to the top, and column headings follow the
+same horizontal alignment as their values. Open Sans and tabular numerals keep
+numeric columns readable without switching fonts.
+
+Use subtle striping when it helps readers follow a row across many columns.
+`opt_row_striping()` uses Attaviz's light grey. This example removes the internal
+horizontal rules so the table uses one main row-tracking aid:
+
+```{python}
+wide_data = participation.assign(
+    eligible=[18000, 12000, 9500],
+    duration_months=[12, 18, 12],
+)[["country", "eligible", "participants", "completion", "duration_months", "funding"]]
+
+wide_table = (
+    attaviz.table(
+        wide_data,
+        title="Program coverage and results",
+        subtitle="Illustrative participation, completion, duration, and funding",
+        source="Source: illustrative example data. N/A indicates unavailable data.",
+    )
+    .cols_label(
+        country="Country",
+        eligible="Eligible people",
+        participants="Participants",
+        completion="Completion (%)",
+        duration_months="Duration (months)",
+        funding="Funding (USD)",
+    )
+    .fmt_integer(columns=["eligible", "participants", "duration_months"])
+    .fmt_percent(columns="completion", decimals=1)
+    .fmt_currency(columns="funding", currency="USD", decimals=0)
+    .opt_row_striping()
+    .tab_options(table_body_hlines_style="none")
+)
+wide_table
+```
+
+Keep the default light rules for smaller tables. You can adjust density with
+native `.tab_options(data_row_padding="9px")` when wrapped text needs more room;
+rows grow with their content rather than being forced to a fixed height.
+
+## Group columns and explain a value
+
+Add a spanner above related columns and a footnote on the completion heading:
+
+```{python}
+from great_tables import loc
+
+publication_table = (
+    formatted
+    .tab_spanner(label="Program results", columns=["participants", "completion"])
+    .tab_footnote(
+        "Completion is the share of participants who finished the program.",
+        locations=loc.column_labels(columns="completion"),
+    )
+)
+publication_table
+```
+
+Use `loc.body(columns="completion", rows=[2])` instead to attach a footnote to
+the third row's completion cell. Great Tables uses zero-based row positions.
+
+## Prepare row order and index labels
+
+Sort or filter the DataFrame before passing it to `table()`. The DataFrame index
+is omitted; if it contains labels you need, turn it into a column first:
+
+```{python}
+ranked = participation.set_index("country").sort_values("participants", ascending=False)
+
+attaviz.table(
+    ranked.reset_index(),
+    title="Countries ordered by participation",
+).fmt_integer(columns="participants")
+```
+
+## Export and share
+
+To save the completed table, run these commands in your notebook or script:
+
+```python
+publication_table.write_raw_html("participation.html", make_page=True)
+```
+
+HTML export creates a standalone page and needs no browser. You can also get
+HTML as a string with `publication_table.as_raw_html()` for embedding in another
+page.
+
+For image or PDF output:
+
+```python
+publication_table.gtsave("participation.png")
+publication_table.gtsave("participation.pdf")
+```
+
+Image and PDF export use headless Chrome through Great Tables' `nokap`
+dependency. See the [Great Tables export guide](https://posit-dev.github.io/great-tables/user-guide/exporting-and-saving.html)
+for environment setup.
+
+## Design choices and publication checklist
+
+WBG tokens set the typography and colors. Table layout also draws on
+[Government Analysis Function guidance](https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-tables/),
+[GOV.UK's table component](https://design-system.service.gov.uk/components/table/),
+and [W3C's table accessibility guidance](https://www.w3.org/WAI/tutorials/tables/).
+UI decisions also draw on [Pencil & Paper's table patterns](https://www.pencilandpaper.io/articles/ux-pattern-analysis-enterprise-data-tables),
+[NN/g's table-task guidance](https://www.nngroup.com/articles/data-tables/),
+and [IBM Carbon's table guidelines](https://www.carbondesignsystem.com/building-blocks/core/components/data-table/guidelines).
+
+- Keep the title and subtitle together. Attaviz uses 3 px of padding between
+  them, with more space before the column labels. This is an Attaviz spacing
+  choice, not a WBG or universal table-design requirement.
+- Use a clear headline and a subtitle stating the measure, geography, and period.
+  Put units in column headings and choose consistent precision within each column.
+- Keep comparable numbers right-aligned; use natural order for dates and ordered
+  categories, or rank rows when the comparison calls for it.
+- Use rules and shading sparingly. Attaviz defaults to light horizontal rules
+  without vertical gridlines or alternating row shading.
+- Explain missing values. `N/A` can mean different things; distinguish unavailable,
+  inapplicable, and suppressed data when relevant. For this guide's unavailable
+  observations, you can use `formatted.sub_missing(missing_text="Not available")`.
+- Prefer HTML tables for web publication so headers and cells retain their
+  structural relationships. Check long labels, narrow screens, and zoomed text;
+  image export alone does not preserve accessible table navigation.
+
+## API and defaults
 
 ```python
 attaviz.table(data, *, title=None, subtitle=None, source=None)
 ```
 
-The helper returns an ordinary `great_tables.GT` object. It uses Attaviz's medium typography and spacing, dark text on white, left-aligned headings, and subtle horizontal rules. Numeric columns align to the right and text columns to the left using Great Tables' type-based defaults. Missing cells display as `N/A`.
+- `data` must be a non-empty pandas DataFrame with unique string column names.
+  Attaviz copies it, preserving row order and omitting the index.
+- `title`, `subtitle`, and `source` are optional plain text. A subtitle requires
+  a title. Titles, subtitles, source notes, column names, and unformatted text
+  cells are escaped as plain text.
+- Styling uses Attaviz's medium typography and spacing, dark text on white,
+  left-aligned headings, content-based widths, wrapping text, and subtle horizontal
+  rules. Quarto table processing is disabled to preserve these defaults when
+  embedding the table in documentation. Open Sans must be available
+  in the viewing environment for an exact font match; otherwise a sans-serif
+  fallback is used.
 
-The WBG guide supplies the typography and colors; horizontal rules and other table layout choices are Attaviz defaults, rather than table-specific WBG rules.
+The WBG guide supplies the typography and colors; horizontal rules and other
+table layout choices are Attaviz defaults. These are static publication tables;
+sorting and pagination are outside this helper's defaults.
 
-Input must be a non-empty pandas DataFrame with unique string column names. Data is copied, row order is preserved, and the DataFrame index is omitted. Use `reset_index()` first if the index contains labels you want to display. A subtitle requires a title. Titles, subtitles, source notes, column names, and unformatted text cells are escaped as plain text.
-
-## Format and customize
-
-The helper preserves numbers without rounding or scaling. Use native Great Tables methods to specify precision and units, change labels, or add footnotes:
-
-```python
-import pandas as pd
-import attaviz
-
-data = pd.DataFrame({
-    "country": ["Indonesia", "Malaysia", "Philippines"],
-    "participants": [12345, 8900, 6750],
-    "completion": [0.876, 0.923, None],
-})
-
-table = (
-    attaviz.table(
-        data,
-        title="Program participation by country",
-        subtitle="Illustrative counts and completion rates",
-        source="Source: illustrative data. N/A indicates unavailable data.",
-    )
-    .cols_label(country="Country", participants="Participants", completion="Completion")
-    .fmt_integer(columns="participants")
-    .fmt_percent(columns="completion", decimals=1)
-)
-
-table  # Displays in Jupyter notebooks
-```
-
-Percent formatting assumes fractions: `0.876` becomes `87.6%`. Open Sans must be available in the viewing environment for an exact font match; otherwise the browser uses a sans-serif fallback.
-
-## Export
-
-```python
-table.write_raw_html("participation.html", make_page=True)
-table.gtsave("participation.png")
-table.gtsave("participation.pdf")
-```
-
-HTML export needs no browser. Image and PDF export use headless Chrome through Great Tables' `nokap` dependency. See the [Great Tables export guide](https://posit-dev.github.io/great-tables/user-guide/exporting-and-saving.html) for environment setup. These are static tables; sorting and pagination are outside this helper's defaults.
+See the [table gallery](../gallery.qmd#tables) for more rendered examples.

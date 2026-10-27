@@ -126,7 +126,7 @@ def _palette(selected, meaning: str) -> list[str]:
     if selected is not None and (
         isinstance(selected, str) or not isinstance(selected, Sequence)
     ):
-        raise TypeError("palette must be a sequence of colors")
+        raise TypeError("palette must be a list of colors")
     result = list(_MEANINGS[meaning] if selected is None else selected)
     if len(result) < 2:
         raise ValueError("palette must contain at least two colors")
@@ -201,9 +201,9 @@ def choropleth(
         ``(minimum, maximum)`` scale extent. Must include every observed value,
         and zero for ``"change"`` maps. Not used by ``"quantile"``.
     palette
-        Sequence of at least two CSS colors. Overrides the ``meaning`` palette.
+        List of at least two CSS colors. Overrides the ``meaning`` palette.
     highlight
-        One label or a sequence of labels. Highlighting strengthens borders
+        One label or a list of labels. Highlighting strengthens borders
         and does not change the colors.
     tooltip
         Additional columns to show after the label and value.

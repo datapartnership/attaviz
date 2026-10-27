@@ -9,7 +9,7 @@ from typing import Literal
 
 import altair as alt
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
+from pandas.api.types import is_datetime64_any_dtype, is_list_like, is_numeric_dtype
 
 from . import colors
 from .formatting import d3_date_format, format_number, vega_scale_labelExpr
@@ -78,9 +78,10 @@ def _numeric(data: pd.DataFrame, *fields: str) -> None:
 def _values(value: object | Sequence[object] | None) -> list[object]:
     if value is None:
         return []
-    if isinstance(value, str) or not isinstance(value, Sequence):
+    if not is_list_like(value):
         return [value]
-    return list(value)
+    # tolist() converts NumPy scalars to Python values that serialize to JSON.
+    return value.tolist() if hasattr(value, "tolist") else list(value)
 
 
 def _validate_highlight(
@@ -234,16 +235,16 @@ def bar(
     series
         Optional column that splits each bar into stacked segments. Stacked
         values must be non-negative. Segment labels under 8% of the category
-        total are hidden.
+        total are hidden so that they do not overflow narrow segments.
     title, subtitle
         Chart title and subtitle. A subtitle requires a title.
     sort
         ``"descending"`` (default), ``"ascending"``, ``"data"`` (keep row
-        order), or an explicit sequence of categories.
+        order), or a list of categories in display order.
     labels
         Show value labels at the end of each bar.
     highlight
-        One category or a sequence of categories to emphasize.
+        One category or a list of categories to emphasize.
     value_format
         ``"auto"``, ``"integer"``, ``"decimal"``, ``"percent"``, ``"currency"``,
         or a D3 number-format string.
@@ -331,7 +332,7 @@ def bar(
     if isinstance(sort, str):
         if sort not in {"ascending", "descending", "data"}:
             raise ValueError(
-                "sort must be 'ascending', 'descending', 'data', or a sequence"
+                "sort must be 'ascending', 'descending', 'data', or a list"
             )
         sort_value = {"ascending": "x", "descending": "-x", "data": None}[sort]
     else:
@@ -402,6 +403,8 @@ def bar(
         )
         chart: alt.Chart | alt.LayerChart = bars
         if labels:
+            # A rule of thumb, not a pixel measurement: at typical widths, a
+            # segment under 8% of its bar is too narrow to hold its label.
             labels_chart = (
                 alt.Chart(source)
                 .transform_filter(alt.datum.__attaviz_share >= 0.08)
@@ -534,7 +537,7 @@ def line(
     title, subtitle
         Chart title and subtitle. A subtitle requires a title.
     highlight
-        One series or a sequence of series to emphasize. Requires ``series``.
+        One series or a list of series to emphasize. Requires ``series``.
     end_labels
         Label line ends directly. Applies only up to five series; with more
         series, or with ``end_labels=False``, the chart uses a legend.
@@ -712,7 +715,7 @@ def scatter(
     title, subtitle
         Chart title and subtitle. A subtitle requires a title.
     highlight
-        One label or a sequence of labels. Highlighted points are drawn on
+        One label or a list of labels. Highlighted points are drawn on
         top, labeled directly, and the other points are muted. Requires ``label``.
     x_zero, y_zero
         Include zero in the x-axis or y-axis domain.

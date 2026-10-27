@@ -180,6 +180,26 @@ def test_scatter_renders_highlighted_points_above_muted_points():
     assert spec["layer"][2]["mark"]["type"] == "text"
 
 
+@pytest.mark.parametrize(
+    "highlight",
+    [
+        ["A", "B"],
+        ("A", "B"),
+        {"A", "B"},
+        pd.Series(["A", "B"]),
+        pd.Series(["A", "B"]).to_numpy(),
+    ],
+)
+def test_highlight_accepts_list_like_values(highlight):
+    data = pd.DataFrame({"x": [1, 2, 3], "y": [4, 6, 5], "name": ["A", "B", "C"]})
+
+    spec = attaviz.scatter(
+        data, x="x", y="y", label="name", highlight=highlight
+    ).to_dict()
+
+    assert sorted(spec["layer"][1]["transform"][0]["filter"]["oneOf"]) == ["A", "B"]
+
+
 def test_composition_helper_rejects_ambiguous_encodings():
     first = attaviz.scatter(pd.DataFrame({"x": [1], "y": [2]}), x="x", y="y")
     second = attaviz.scatter(pd.DataFrame({"a": [1], "b": [2]}), x="a", y="b")

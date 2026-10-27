@@ -34,7 +34,9 @@ def table(
     formatting, labels, footnotes, and exports can use Great Tables directly.
     Numbers retain their precision unless explicitly formatted by the caller;
     missing values display as ``N/A``. The DataFrame index is not displayed.
-    Input data is copied. Title, subtitle, and source are plain text.
+    Input data is copied. Title, subtitle, and source are plain text. Tables
+    size to their content; use native ``cols_width()`` and ``tab_options()``
+    to override widths or ``opt_row_striping()`` for subtle row shading.
 
     Typography and colors follow Attaviz's medium theme. Horizontal rules
     are an Attaviz default, rather than a table-specific WBG specification.
@@ -73,7 +75,7 @@ def table(
             table_font_weight=FONT_WEIGHT_REGULAR,
             table_font_color=colors.TEXT,
             table_background_color="white",
-            table_width="100%",
+            table_width="auto",
             table_margin_left="0px",
             table_margin_right="0px",
             table_border_top_style="none",
@@ -86,7 +88,8 @@ def table(
             heading_padding_horizontal=0,
             heading_border_bottom_style="none",
             column_labels_font_weight=FONT_WEIGHT_SEMIBOLD,
-            column_labels_padding=space["s"],
+            column_labels_padding=space["xs"],
+            column_labels_padding_horizontal=space["s"],
             column_labels_border_top_style="none",
             column_labels_border_bottom_width="1px",
             column_labels_border_bottom_color=colors.GREY_300,
@@ -94,8 +97,10 @@ def table(
             table_body_border_top_style="none",
             table_body_border_bottom_width="1px",
             table_body_border_bottom_color=colors.GREY_200,
-            data_row_padding=space["s"],
-            data_row_padding_horizontal=space["xs"],
+            data_row_padding=space["xs"],
+            data_row_padding_horizontal=space["s"],
+            row_striping_background_color=colors.GREY_100,
+            quarto_disable_processing=True,
             source_notes_font_size=typo["S"],
             source_notes_padding=space["s"],
             source_notes_padding_horizontal=0,
@@ -106,14 +111,24 @@ def table(
             locations=[loc.subtitle(), loc.source_notes()],
         )
         .tab_style(
-            style.css(
-                f"font-variant-numeric: tabular-nums; line-height: {LINE_HEIGHT_LONG};"
-            ),
+            style.css("font-variant-numeric: tabular-nums; vertical-align: top;"),
             locations=loc.body(),
+        )
+        .tab_style(
+            style.css(
+                f"line-height: {LINE_HEIGHT_LONG}; white-space: normal; overflow: visible;"
+            ),
+            locations=[loc.body(), loc.column_labels()],
         )
     )
     if title is not None:
         result = result.tab_header(title=title, subtitle=subtitle)
+    if subtitle is not None:
+        result = result.tab_style(
+            style.css("padding-bottom: 0;"), locations=loc.title()
+        ).tab_style(
+            style.css(f"padding-top: {space['xxs']}px;"), locations=loc.subtitle()
+        )
     if source is not None:
         result = result.tab_source_note(source)
     return result

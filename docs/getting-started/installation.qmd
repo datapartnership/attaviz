@@ -41,8 +41,7 @@ Install both with `pip install "attaviz[maps,tables]"`.
 - Python 3.11 or newer
 - Altair 5 or newer
 
-Dependencies (`altair`, `pandas`, `pyarrow`, `vegafusion`, `vl-convert-python`) install
-automatically.
+Dependencies (`altair`, `pandas`, `pyarrow`, `vegafusion`, `vl-convert-python`) install automatically.
 
 ## Local development
 
@@ -62,5 +61,4 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
-Install [Quarto](https://quarto.org/docs/get-started/) separately, then render
-the documentation with `uv run quarto render docs`.
+Install [Quarto](https://quarto.org/docs/get-started/) separately, then render the documentation with `uv run quarto render docs`.

@@ -2,114 +2,218 @@
 title: "Formatting & helpers"
 ---
 
-## Number formatting
+Use Python formatters when you need **text**, D3 format strings when an Altair
+axis or tooltip expects **`format`**, and a Vega expression when an axis expects
+**`labelExpr`**. Keep chart data numeric or temporal so sorting and scales work.
 
-`format_number` applies WBG rules: automatic scale suffix (K/M/B), auto
-decimal places based on magnitude, and optional currency/percent/unit
-handling.
+| Helper | Returns | Where to use it |
+|---|---|---|
+| `format_number(1234567)` | `"1.2M"` | Python labels, captions, or a separate text column |
+| `format_date("2023-01-15")` | `"Jan-23"` | Python labels or an ordinal date column |
+| `d3_number_format(decimals=0)` | `",.0f"` | `alt.Axis(format=...)`, `alt.Tooltip(format=...)`, template `value_format` |
+| `d3_date_format("month_year")` | `"%b-%y"` | Temporal axis/tooltip `format`, template `date_format` |
+| `vega_scale_labelExpr()` | Vega expression | `alt.Axis(labelExpr=...)` for automatic K/M/B ticks |
+
+All chart examples below use this illustrative data:
 
 ```{python}
+import altair as alt
+import pandas as pd
 import attaviz
-print(attaviz.format_number(1234567))              # 1.2M
-print(attaviz.format_number(0.456, percent=True))  # 45.6%
-print(attaviz.format_number(50000, currency=True)) # $50.0K
-print(attaviz.format_number(1234567890, unit="bytes"))  # 1.2GB
+
+attaviz.enable()
+
+data = pd.DataFrame({
+    "date": pd.to_datetime(["2023-01-01", "2023-04-01", "2023-07-01", "2023-10-01"]),
+    "funding": [1_200_000, 1_500_000, 1_350_000, 1_800_000],
+    "completion": [0.25, 0.45, 0.62, 0.86],
+})
 ```
 
-Key parameters:
+## Number formatting
 
-- `decimals` — integer or `"auto"` (default). Auto uses 2 decimals for values
-  under 1, 1 decimal for 1–100, 0 above.
-- `scale` — `"K"`, `"M"`, `"B"`, `"G"`, or `"auto"`.
-- `currency` — prefix with `$`.
-- `percent` — multiply by 100 and suffix with `%`.
-- `unit` — when set to a technical unit (`W`, `byte`, `bit`, `ton`, ...),
-  uses `G` instead of `B` for billions.
+`format_number()` returns text using WBG automatic scale suffixes (K/M/B),
+precision based on the scaled magnitude, and optional currency, percent, or units.
+
+```{python}
+print(attaviz.format_number(1234567))                   # 1.2M
+print(attaviz.format_number(1234))                      # 1,234
+print(attaviz.format_number(0.456, percent=True))        # 45.6%
+print(attaviz.format_number(50000, currency=True))       # $50.0K
+print(attaviz.format_number(1234567890, unit="bytes"))   # 1.2GB
+print(attaviz.format_number(1234567, scale="M", decimals=2))  # 1.23M
+```
+
+- `decimals` — integer or `"auto"` (default): 2 decimals below 1, 1 below 100,
+  otherwise 0, applied after scaling. Zero displays as `0`.
+- `scale` — `"K"`, `"M"`, `"B"`, `"G"`, or `"auto"`. Automatic scaling starts
+  at 10,000 (K), 1,000,000 (M), and 1,000,000,000 (B).
+- `currency=True` — prefix with `$`.
+- `percent=True` — multiply a fraction by 100 and append `%`.
+- `unit` — append a unit; technical units (`watt`, `byte`, `bit`, `ton`, ...)
+  use G for billions.
+- Missing values (`None` or float NaN) display as `N/A`.
+
+For a formatted tooltip, add a text column while keeping the numeric column
+for the scale:
+
+```{python}
+labeled = data.assign(funding_label=data["funding"].map(attaviz.format_number))
+
+alt.Chart(labeled).mark_bar().encode(
+    x="date:T",
+    y="funding:Q",
+    tooltip=[alt.Tooltip("date:T"), alt.Tooltip("funding_label:N", title="Funding")],
+).properties(width=600, height=240)
+```
 
 ## D3 number format strings
 
-For Altair axes/tooltips, which expect a D3 format string rather than a
-Python-formatted value:
+`d3_number_format()` returns a format specification; it does not format a value.
+Pass that specification to both the axis and tooltip:
 
 ```{python}
-print(attaviz.d3_number_format())                  # ',.1f'
-print(attaviz.d3_number_format(decimals=0))        # ',.0f'
-print(attaviz.d3_number_format(currency=True))     # '$,.1f'
-print(attaviz.d3_number_format(percent=True))      # '.1%'
+number_format = attaviz.d3_number_format(decimals=0, currency=True)  # $,.0f
+
+alt.Chart(data).mark_bar().encode(
+    x="date:T",
+    y=alt.Y("funding:Q", title="Funding (USD)", axis=alt.Axis(format=number_format)),
+    tooltip=[alt.Tooltip("funding:Q", title="Funding", format=number_format)],
+).properties(width=600, height=240)
 ```
 
-D3 format strings don't support custom suffixes, so for K/M/B either
-pre-scale the data or indicate the scale in the axis title
-("GDP (millions)").
+For percentages, pass fractions: `0.45` displays as `45.0%` with `.1%`.
 
-## Auto-scaled Altair axis labels
-
-`vega_scale_labelExpr()` returns a Vega expression that applies Attaviz K/M/B
-scaling to raw values in an Altair axis:
-
-```python
-import altair as alt
-
-axis = alt.Axis(labelExpr=attaviz.vega_scale_labelExpr())
-```
-
-```python
-attaviz.vega_scale_labelExpr(
-    *,
-    currency=False,
-    unit=None,
-    decimals="auto",
+```{python}
+attaviz.line(
+    data,
+    x="date",
+    y="completion",
+    value_format=attaviz.d3_number_format(percent=True, decimals=1),
+    date_format=attaviz.d3_date_format("month_year"),
+    title="Completion increased during the year",
+    width=600,
+    height=240,
 )
 ```
 
-Set `currency=True` for a dollar prefix, `unit` for a unit suffix, or `decimals`
-to an integer for fixed precision. This function returns an expression, not a D3
-format string; pass it to `labelExpr`, not `format`.
+`d3_number_format(scale="M")` does **not** divide values or append M; its `scale`
+argument is unused. To display millions, explicitly divide the data and label
+the axis “Funding (millions)”. For automatic K/M/B suffixes, use the expression
+helper below. The Python helper's `currency=True` always means `$`; template
+`value_format="currency", currency="USD"` uses a currency code instead.
+
+## Auto-scaled Altair axis labels
+
+`vega_scale_labelExpr()` applies WBG K/M/B suffixes to raw numbers per tick.
+It returns an expression for `labelExpr`, while tooltips can still show exact
+values with a D3 format string:
+
+```{python}
+alt.Chart(data).mark_bar().encode(
+    x="date:T",
+    y=alt.Y(
+        "funding:Q",
+        title="Funding (USD)",
+        axis=alt.Axis(labelExpr=attaviz.vega_scale_labelExpr(currency=True)),
+    ),
+    tooltip=[alt.Tooltip("funding:Q", format=attaviz.d3_number_format(currency=True))],
+).properties(width=600, height=240)
+```
+
+Set `unit="bytes"` for unit suffixes (including G at billions) or `decimals=2`
+for fixed precision. Pass this expression to `labelExpr`, not `format`.
 
 ## Date formatting
 
+`format_date()` accepts a Python `date`, `datetime`, or ISO date string and
+returns text. The WBG fiscal year runs July–June: July 2023 belongs to FY24.
+
 ```{python}
 from datetime import date
-import attaviz
+
 d = date(2023, 1, 15)
-print(attaviz.format_date(d, style="month_year"))               # Jan-23
-print(attaviz.format_date(d, style="month_year", short=False))  # January 2023
-print(attaviz.format_date(d, style="quarter"))                  # 23Q1
-print(attaviz.format_date(d, style="fiscal_year"))              # FY23
+for style in ["day", "month", "month_year", "quarter", "year", "fiscal_year"]:
+    print(style, attaviz.format_date(d, style=style),
+          attaviz.format_date(d, style=style, short=False))
+
+print(attaviz.format_date("2023-07-01", style="fiscal_year"))  # FY24
 ```
 
-Supported `style` values: `"day"`, `"month"`, `"month_year"`, `"quarter"`,
-`"year"`, `"fiscal_year"`. The WBG fiscal year runs July–June (July 2023 is
-FY24; January 2023 is FY23).
+Use `short=False` for full month names and four-digit years. Short quarters use
+`23Q1`; long quarters use `2023Q1`. Python's short day style is day/month/year
+(`15/1/2023`).
 
 ## D3 date format strings
 
+`d3_date_format()` supports `"day"`, `"month"`, `"month_year"`, and `"year"`.
+Use a temporal encoding (`:T`) and pandas datetime values. Here the axis uses
+month/year and the tooltip shows a full date:
+
 ```{python}
-print(attaviz.d3_date_format("month_year"))               # %b-%y
-print(attaviz.d3_date_format("month_year", short=False))  # %B %Y
-print(attaviz.d3_date_format("year"))                     # %y
+alt.Chart(data).mark_line(point=True).encode(
+    x=alt.X(
+        "date:T",
+        title=None,
+        axis=alt.Axis(format=attaviz.d3_date_format("month_year")),
+    ),
+    y="funding:Q",
+    tooltip=[
+        alt.Tooltip("date:T", title="Date", format=attaviz.d3_date_format("day", short=False)),
+        alt.Tooltip("funding:Q", title="Funding", format=attaviz.d3_number_format(decimals=0)),
+    ],
+).properties(width=600, height=240)
 ```
 
-`"quarter"` and `"fiscal_year"` cannot be represented as D3 time-format
-strings. For those, pre-compute values with `format_date` and pass them to
-Altair as strings, or use a Vega expression in the axis encoding.
+`short=False` changes `%b-%y` (`Jan-23`) to `%B %Y` (`January 2023`). The D3
+short day format is `%m/%d/%Y` (`01/15/2023`), which differs from the Python
+formatter's day/month/year output.
+
+Quarter and fiscal-year styles raise `ValueError` in `d3_date_format()`.
+Precompute them with `format_date()` and use an ordinal (`:O`) encoding to
+preserve data order. This custom Altair chart works with quarter strings;
+`attaviz.line()` requires numeric or temporal x values.
+
+```{python}
+quarterly = data.assign(
+    quarter=data["date"].map(lambda d: attaviz.format_date(d, style="quarter"))
+)
+
+alt.Chart(quarterly).mark_line(point=True).encode(
+    x=alt.X("quarter:O", sort=None, title="Quarter"),
+    y="funding:Q",
+    tooltip=["quarter:O", alt.Tooltip("funding:Q", format=",.0f")],
+).properties(width=600, height=240)
+```
 
 ## Captions
 
-Use [`frame()`](charts.qmd#publication-frame) to add a note, a source, and a
-byline below a chart. It also requires an accessibility description.
+Use [`frame()`](charts.qmd#publication-frame) for notes, source, byline, and
+an accessibility description. That reference includes a complete rendered
+example with a visible title and subtitle.
 
-`add_caption()` remains available for compatibility. It attaches one styled
-caption below a chart.
+`add_caption()` attaches a single styled caption. Supply your own “Source:”
+or “Note:” prefix, and use `\n` for multiple lines:
 
-```python
+```{python}
+chart = attaviz.line(data, x="date", y="completion", value_format="percent", width=600)
 attaviz.add_caption(
     chart,
-    "Source: World Bank Development Indicators, 2023",
-    *,
+    "Source: illustrative example data.\nNote: completion is a fraction of participants.",
     align="left",
 )
 ```
 
-- `align` — `"left"` (default, on-spec), `"center"`, or `"right"`.
-- Embed a newline (`\n`) in the text for multi-line captions.
+`align` accepts `"left"` (default, WBG alignment), `"center"`, or `"right"`.
+Like `frame()`, `add_caption()` wraps the chart and changes responsive width to
+600 px. Apply either helper after adding layers or hover; use one footer helper
+per chart.
+
+## More helpers
+
+- [Annotations and reference lines/ranges](charts.qmd#annotations-and-references)
+- [Hover for custom Altair lines](charts.qmd#hover-for-custom-altair-lines)
+- [Map annotations](maps.qmd#map-annotations) and [rendered map examples](../gallery.qmd#maps)
+- [Per-chart sizing and dimension calculations](theme.qmd#per-chart-sizing)
+- [Theme configuration](theme.qmd#theme-configuration)
+- [Styled tables and export](tables.qmd)
