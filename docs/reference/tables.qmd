@@ -1,0 +1,56 @@
+---
+title: "Tables"
+---
+
+`attaviz.table()` styles a pandas DataFrame using [Great Tables](https://posit-dev.github.io/great-tables/). Install the optional dependency with `pip install "attaviz[tables]"`. Tables do not require `attaviz.enable()`.
+
+```python
+attaviz.table(data, *, title=None, subtitle=None, source=None)
+```
+
+The helper returns an ordinary `great_tables.GT` object. It uses Attaviz's medium typography and spacing, dark text on white, left-aligned headings, and subtle horizontal rules. Numeric columns align to the right and text columns to the left using Great Tables' type-based defaults. Missing cells display as `N/A`.
+
+The WBG guide supplies the typography and colors; horizontal rules and other table layout choices are Attaviz defaults, rather than table-specific WBG rules.
+
+Input must be a non-empty pandas DataFrame with unique string column names. Data is copied, row order is preserved, and the DataFrame index is omitted. Use `reset_index()` first if the index contains labels you want to display. A subtitle requires a title. Titles, subtitles, source notes, column names, and unformatted text cells are escaped as plain text.
+
+## Format and customize
+
+The helper preserves numbers without rounding or scaling. Use native Great Tables methods to specify precision and units, change labels, or add footnotes:
+
+```python
+import pandas as pd
+import attaviz
+
+data = pd.DataFrame({
+    "country": ["Indonesia", "Malaysia", "Philippines"],
+    "participants": [12345, 8900, 6750],
+    "completion": [0.876, 0.923, None],
+})
+
+table = (
+    attaviz.table(
+        data,
+        title="Program participation by country",
+        subtitle="Illustrative counts and completion rates",
+        source="Source: illustrative data. N/A indicates unavailable data.",
+    )
+    .cols_label(country="Country", participants="Participants", completion="Completion")
+    .fmt_integer(columns="participants")
+    .fmt_percent(columns="completion", decimals=1)
+)
+
+table  # Displays in Jupyter notebooks
+```
+
+Percent formatting assumes fractions: `0.876` becomes `87.6%`. Open Sans must be available in the viewing environment for an exact font match; otherwise the browser uses a sans-serif fallback.
+
+## Export
+
+```python
+table.write_raw_html("participation.html", make_page=True)
+table.gtsave("participation.png")
+table.gtsave("participation.pdf")
+```
+
+HTML export needs no browser. Image and PDF export use headless Chrome through Great Tables' `nokap` dependency. See the [Great Tables export guide](https://posit-dev.github.io/great-tables/user-guide/exporting-and-saving.html) for environment setup. These are static tables; sorting and pagination are outside this helper's defaults.

@@ -93,6 +93,7 @@ from .charts import (  # noqa: F401
     scatter,
 )
 from .maps import add_map_annotation, choropleth  # noqa: F401
+from .tables import table  # noqa: F401
 
 __all__ = [
     # Theme functions
@@ -123,6 +124,7 @@ __all__ = [
     "add_reference_range",
     "choropleth",
     "add_map_annotation",
+    "table",
     # Responsive sizing constants
     "SIZE_BREAKPOINTS",
     "TYPOGRAPHY",

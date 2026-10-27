@@ -65,6 +65,33 @@ chart = attaviz.frame(
 )
 ```
 
+## Create a styled table
+
+Install the optional table support:
+
+```bash
+uv add "attaviz[tables]"
+# or
+pip install "attaviz[tables]"
+```
+
+Use the same DataFrame to show exact values alongside a chart:
+
+```{python}
+(
+    attaviz.table(
+        source,
+        title="Barley yield by site",
+        subtitle="Mean yield across varieties and years",
+        source="Source: quickstart example data.",
+    )
+    .cols_label(**{"site": "Site", "yield": "Yield (bushels/acre)"})
+    .fmt_number(columns="yield", decimals=1)
+)
+```
+
+`table()` returns a native Great Tables object, so you can chain its formatting and customization methods. Missing values display as `N/A`; numbers retain their precision until you format them. Tables work without calling `attaviz.enable()`.
+
 ## Size variants
 
 Three typography/spacing presets are available. Pick the one that matches
@@ -85,5 +112,5 @@ chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
 ```
 
 Next, read the [chart template reference](../reference/charts.qmd),
-[map reference](../reference/maps.qmd), or browse the
+[map reference](../reference/maps.qmd), [table reference](../reference/tables.qmd), or browse the
 [gallery](../gallery.qmd).
