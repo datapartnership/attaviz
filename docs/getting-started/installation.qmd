@@ -61,4 +61,10 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
-Install [Quarto](https://quarto.org/docs/get-started/) separately, then render the documentation with `uv run quarto render docs`.
+Install [Quarto](https://quarto.org/docs/get-started/) and `just` separately, then generate the documentation:
+
+```bash
+just docs
+```
+
+The command installs the documentation dependency group through uv and builds the site in `docs/_site`.
