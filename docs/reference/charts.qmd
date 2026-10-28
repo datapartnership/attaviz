@@ -2,8 +2,7 @@
 title: "Chart templates"
 ---
 
-Attaviz chart templates turn summarized pandas DataFrames into publication-ready
-Altair charts. Enable the theme once before creating charts:
+Attaviz chart templates turn your data into publication-ready Altair charts. Enable the theme once before creating charts:
 
 ```python
 import attaviz
@@ -11,9 +10,39 @@ import attaviz
 attaviz.enable()
 ```
 
-Templates copy their input and return ordinary Altair chart objects. They never
-aggregate data silently. Customize the returned chart with Altair when you need
-behavior outside these interfaces.
+Templates copy their input and return ordinary Altair chart objects. Customize the returned chart with Altair when you need behavior outside these interfaces.
+
+## Working example data
+
+The examples below use these illustrative observations:
+
+```{python}
+import altair as alt
+import pandas as pd
+import attaviz
+
+attaviz.enable()
+
+data = pd.DataFrame({
+    "country": ["Indonesia", "Malaysia", "Philippines"],
+    "population": [280_000_000, 35_000_000, 117_000_000],
+    "income": [4900, 11800, 3800],
+    "life_expectancy": [71, 77, 70],
+    "region": ["Southeast Asia"] * 3,
+    "gdp": [1.4e12, 4e11, 4.4e11],
+})
+
+employment = pd.DataFrame({
+    "year": [2022, 2022, 2023, 2023],
+    "sector": ["Services", "Other", "Services", "Other"],
+    "share": [0.55, 0.45, 0.58, 0.42],
+})
+
+trend = pd.DataFrame({
+    "date": pd.to_datetime(["2023-01-01", "2023-04-01", "2023-07-01", "2023-10-01"]),
+    "value": [40, 48, 44, 60],
+})
+```
 
 ## Bar
 
@@ -36,22 +65,17 @@ attaviz.bar(
 )
 ```
 
-`bar()` creates horizontal bars. `data` must be a non-empty pandas DataFrame;
-`category` and numeric `value` name columns in that frame. Each category must
-occur exactly once unless `series` is provided.
+`bar()` creates horizontal bars and you need to provide a non-empty pandas DataFrame as `data`, with `category` and numeric `value` columns specified. Each category must occur exactly once unless `series` is provided.
 
-- `sort` accepts `"ascending"`, `"descending"`, `"data"`, or an explicit
-  category sequence.
+- `sort` accepts `"ascending"`, `"descending"`, `"data"`, or a list of categories in the order you want.
 - `labels` controls end labels.
-- `series` creates stacked bars from unique `(category, series)` rows. Segment
-  labels smaller than 8% of their category total are hidden.
-- `highlight` accepts one category or a sequence of categories.
+- `series` is a column that splits each bar into stacked segments, one colored segment per value, with a legend. Each `(category, series)` pair must occur exactly once, and stacked values must be non-negative. Segment labels smaller than 8% of their category total are hidden so that they do not overflow narrow segments.
+- `highlight` accepts one category or a list of categories.
 - `height` defaults to a value based on the category count.
 - Missing category or value rows are omitted with `UserWarning`.
-- Duplicate keys, negative stacked values, zero stacked totals, unknown
-  highlights, or invalid fields raise an error.
+- Duplicate keys, negative stacked values, zero stacked totals, unknown highlights, or invalid fields raise an error.
 
-```python
+```{python}
 chart = attaviz.bar(
     data,
     category="country",
@@ -59,6 +83,22 @@ chart = attaviz.bar(
     title="Population by country",
     highlight="Indonesia",
 )
+chart
+```
+
+For stacked bars, provide one row per category and segment. This example uses columns `year`, `sector`, and `share`:
+
+```{python}
+chart = attaviz.bar(
+    employment,
+    category="year",
+    value="share",
+    series="sector",
+    sort="data",
+    title="Employment by sector in Indonesia",
+    value_format="percent",
+)
+chart
 ```
 
 ## Line
@@ -84,28 +124,24 @@ attaviz.line(
 )
 ```
 
-`x` must be numeric or temporal and `y` must be numeric. Without `series`, each
-`x` value must be unique. With `series`, every `(x, series)` pair must be
-unique. Duplicate keys raise `ValueError` rather than being aggregated.
+`x` must be numeric or temporal and `y` must be numeric. Without `series`, each `x` value must be unique. With `series`, every `(x, series)` pair must be unique. Duplicate keys raise `ValueError` rather than being aggregated.
 
 - Missing `y` values create gaps.
 - `zero=True` includes zero in the y domain.
-- `highlight` requires `series` and accepts one series or a sequence.
-- Up to five series use end labels by default; larger charts use a legend.
+- `highlight` requires `series` and accepts one series or a list of series.
+- Up to five series use end labels by default, while larger charts use a legend.
 - `end_labels=False` always uses a legend.
 - `points=True` adds point marks.
-- `date_format` accepts `"auto"`, `"day"`, `"month"`, `"month_year"`,
-  `"year"`, or a D3 time-format string. Preformat quarter and fiscal-year
-  labels as strings.
+- `date_format` accepts `"auto"`, `"day"`, `"month"`, `"month_year"`, `"year"`, or a D3 time-format string. For quarter and fiscal-year labels, use a custom Altair chart with preformatted ordinal strings; `line()` requires numeric or temporal x values. See [date formatting](formatting.qmd#d3-date-format-strings).
 
-```python
+```{python}
 chart = attaviz.line(
-    data,
-    x="year",
-    y="population",
-    series="country",
-    highlight="Indonesia",
+    trend,
+    x="date",
+    y="value",
+    date_format=attaviz.d3_date_format("month_year"),
 )
+chart
 ```
 
 ## Scatter
@@ -132,17 +168,15 @@ attaviz.scatter(
 )
 ```
 
-`x` and `y` must name numeric columns. Each row is one observation; duplicate
-coordinates are valid.
+`x` and `y` must name numeric columns. Each row is one observation and it may have duplicate coordinates.
 
 - `label` identifies observations in tooltips.
 - `series` groups observations by color.
-- `highlight` requires `label`; selected observations render above muted points
-  and receive direct labels.
+- `highlight` requires `label` and the selected observations render above muted points and receive direct labels.
 - `x_zero` and `y_zero` independently include zero in each axis domain.
 - Missing x or y rows are omitted with `UserWarning`.
 
-```python
+```{python}
 chart = attaviz.scatter(
     data,
     x="income",
@@ -151,15 +185,14 @@ chart = attaviz.scatter(
     series="region",
     highlight=["Indonesia", "Malaysia"],
 )
+chart
 ```
 
-## Number formats and dimensions
+## Number formats
 
-Number-format arguments accept `"auto"`, `"integer"`, `"decimal"`,
-`"percent"`, `"currency"`, or a D3 number-format string. Currency formatting
-requires a code and rejects a code supplied with any other format:
+Number-format arguments accept `"auto"`, `"integer"`, `"decimal"`, `"percent"`, `"currency"`, or a D3 number-format string. For `"currency"`, also pass `currency` with a currency code such as `"USD"`. The currency code appears before each value, for example "USD 1.4T". Passing `currency` with any other format raises an error.
 
-```python
+```{python}
 attaviz.bar(
     data,
     category="country",
@@ -169,11 +202,11 @@ attaviz.bar(
 )
 ```
 
-The default `width="responsive"` fills the parent HTML container. Pass a
-positive numeric width for deterministic static exports. Heights must also be
-positive. `frame()` resolves responsive width to the theme's 600 px publication
-width because Vega-Lite does not reliably support container sizing inside
-vertical compositions.
+See [formatting examples](formatting.qmd) for D3 strings in template arguments, axes, and tooltips. Percent formats expect fractions (`0.456` becomes `45.6%`).
+
+## Chart size
+
+The default `width="responsive"` makes the chart fill the width of the page or notebook cell that contains it. For static exports such as PNG or SVG, pass a positive `width` and `height` in pixels so that the size is always the same.
 
 ## Annotations and references
 
@@ -201,18 +234,31 @@ attaviz.add_reference_range(
 )
 ```
 
-Annotations use data coordinates. `position` accepts `"above"`, `"below"`,
-`"left"`, or `"right"`; `offset` is a non-negative pixel distance. Reference
-helpers require `axis="x"` or `axis="y"`. Values outside the observed domain
-produce `UserWarning`, and a range with `start > end` raises `ValueError`.
+Annotations use data coordinates. `position` accepts `"above"`, `"below"`, `"left"`, or `"right"`; `offset` is a non-negative pixel distance. Reference helpers require `axis="x"` or `axis="y"`. Values outside the observed domain produce `UserWarning`, and a range with `start > end` raises `ValueError`.
 
-The helpers compose with all three template outputs. A custom layered chart must
-have one unambiguous pair of in-memory x and y field encodings.
+The helpers compose with all three template outputs. A custom layered chart must have one unambiguous pair of in-memory x and y field encodings.
+
+### Add a band, a line, and an annotation
+
+Add each helper to the returned chart, then apply the frame last. Temporal coordinates use pandas timestamps; numeric coordinates use numbers in the original data units.
+
+```{python}
+chart = attaviz.line(trend, x="date", y="value", width=600, height=300)
+chart = attaviz.add_reference_range(chart, start=45, end=55, axis="y")
+chart = attaviz.add_reference_line(chart, value=50, axis="y", label="Target: 50")
+chart = attaviz.add_annotation(
+    chart,
+    x=pd.Timestamp("2023-07-01"),
+    y=44,
+    text="Midyear dip",
+    position="below",
+)
+chart
+```
 
 ## Hover for custom Altair lines
 
-Templates add their own hover behavior. Use `add_hover()` for a custom line
-chart:
+Templates add their own hover behavior. Use `add_hover()` for a custom line chart:
 
 ```python
 attaviz.add_hover(
@@ -225,10 +271,23 @@ attaviz.add_hover(
 )
 ```
 
-The helper supports either one long-form chart with a color field or a layered
-wide-form chart with one y field per layer. It requires in-memory pandas data.
-`format` and `x_format` are D3 format strings. Unsupported chart shapes raise
-`ValueError` rather than producing an inaccurate tooltip.
+The helper supports either one long-form chart with a color field or a layered wide-form chart with one y field per layer. It requires in-memory pandas data. `format` and `x_format` are D3 format strings. Unsupported chart shapes raise `ValueError` rather than producing an inaccurate tooltip.
+
+```{python}
+observations = trend.assign(series="Observed")
+lines = alt.Chart(observations).mark_line().encode(
+    x=alt.X("date:T", axis=alt.Axis(format=attaviz.d3_date_format("month_year"))),
+    y="value:Q",
+    color="series:N",
+).properties(width=600, height=300)
+
+attaviz.add_hover(
+    lines,
+    x="date",
+    format=attaviz.d3_number_format(decimals=0),
+    x_format=attaviz.d3_date_format("day", short=False),
+)
+```
 
 ## Publication frame
 
@@ -244,8 +303,35 @@ attaviz.frame(
 )
 ```
 
-Apply `frame()` last. The required non-empty `description` becomes Vega-Lite
-accessibility metadata and is not displayed as chart text. `note`, `source`, and
-`byline` render below the chart in that order. `source_url` requires `source`
-and is retained in `usermeta` for host integrations because native Vega-Lite
-titles do not support hyperlinks.
+Apply `frame()` last. The required non-empty `description` becomes Vega-Lite accessibility metadata and is not displayed as chart text. `note`, `source`, and `byline` render below the chart in that order. `source_url` requires `source` and is retained in `usermeta` for host integrations because native Vega-Lite titles do not support hyperlinks.
+
+`frame()` changes a responsive chart to a fixed 600 px width. Vega-Lite cannot size a chart to its container when text is stacked below the chart. To use another width, pass `width` when you create the chart.
+
+### Title, subtitle, footer, and accessibility description
+
+Set the visible `title` and `subtitle` on a template (`bar`, `line`, `scatter`, or `choropleth`). `frame()` keeps them and adds publication metadata. For a custom Altair chart, set its heading with `alt.Title(...)` before framing it.
+
+```{python}
+chart = attaviz.bar(
+    data,
+    category="country",
+    value="population",
+    title="Indonesia has the largest population in this example",
+    subtitle="Illustrative population estimates, people",
+    width=600,
+    height=240,
+)
+
+attaviz.frame(
+    chart,
+    description="Population bars for Indonesia (280 million), the Philippines (117 million), and Malaysia (35 million).",
+    note="Values are rounded and provided for demonstration.",
+    source="Illustrative example data",
+    source_url="https://datapartnership.github.io/attaviz/",
+    byline="Attaviz",
+)
+```
+
+Pass plain text without “Note:”, “Source:”, or “By:” prefixes; the frame adds them. The footer displays the note, source, and byline. The description is available to assistive technology, and the source URL is stored as metadata rather than rendered as a clickable link.
+
+The returned object is an Altair `VConcatChart`. Add layers, hover, and reference helpers **before** calling `frame()`; use the framed result for display or export. Set template dimensions before framing. A chart configured with `configure_size()` has top-level configuration that Altair cannot nest inside a frame; use template `width`/`height` and `enable(size=...)` for framed charts.

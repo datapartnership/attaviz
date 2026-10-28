@@ -23,8 +23,7 @@ attaviz.enable()
 
 # Theme examples
 
-These examples use Altair directly. Attaviz supplies the visual defaults while
-Altair supplies the chart specification.
+These examples use Altair directly. Attaviz supplies the visual defaults while Altair supplies the chart specification. Native `alt.Title(...)` sets headings on these custom charts. For templates, pass `title` and `subtitle` directly; [`frame()`](reference/charts.qmd#publication-frame) adds publication footers and accessibility metadata to either kind of chart.
 
 ## Bar chart
 
@@ -647,10 +646,11 @@ attaviz.frame(
 
 # Formatting and captions
 
-These examples use Attaviz helpers for captions, publication frames, and
-number formats.
+These examples use Attaviz helpers for captions, publication frames, and number formats.
 
 ## Title, subtitle, and source
+
+Set the title and subtitle on the chart, then apply `frame()` last. It adds the note, source, and byline below the chart, and stores the required description as accessibility metadata.
 
 ::: {.panel-tabset .gallery-example}
 
@@ -658,29 +658,24 @@ number formats.
 
 
 ```{python}
-source = data.barley()
+source = data.barley().groupby("site", as_index=False)["yield"].mean()
 
-chart = (
-    alt.Chart(
-        source,
-        title=alt.Title(
-            "Waseca had the highest barley yield",
-            subtitle="Mean yield across varieties and years (bushels/acre)",
-        ),
-    )
-    .mark_bar()
-    .encode(
-        x=alt.X("mean(yield):Q", title="Mean yield"),
-        y=alt.Y("site:N", sort="-x", title=None),
-        color=alt.value(attaviz.CATEGORICAL[0]),
-    )
-    .properties(width="container", height=300)
+chart = attaviz.bar(
+    source,
+    category="site",
+    value="yield",
+    title="Waseca had the highest barley yield",
+    subtitle="Mean yield across varieties and years (bushels/acre)",
+    width=600,
+    height=300,
 )
 
 attaviz.frame(
     chart,
     description="Horizontal bars comparing mean barley yield at six sites; Waseca is highest.",
     source="Minnesota agricultural experiment stations, 1931–1932",
+    note="Yields are averaged across varieties and years.",
+    byline="Attaviz",
 )
 ```
 
@@ -762,8 +757,7 @@ alt.Chart(
 
 # Chart templates
 
-These examples use Attaviz chart templates and composition helpers to handle
-common editorial decisions.
+These examples use Attaviz chart templates and composition helpers to handle common editorial decisions.
 
 ## Bar chart with highlight and publication frame
 
@@ -885,8 +879,7 @@ attaviz.add_reference_range(
 
 # Maps
 
-Use `choropleth()` for area maps. For other map types, such as point maps, use
-Altair with the theme enabled.
+Use `choropleth()` for area maps. For other map types, such as point maps, use Altair with the theme enabled.
 
 ## Choropleth map
 
@@ -1127,6 +1120,51 @@ from great_tables import loc
         "Completion is the share of participants who finished the program.",
         locations=loc.column_labels(columns="completion"),
     )
+)
+```
+
+### Code
+
+<div class="gallery-code"></div>
+
+:::
+
+## Wide table with subtle row striping
+
+Keep related numeric measures together and use a light alternating background
+to help readers track rows across the table. Full labels wrap when needed.
+
+::: {.panel-tabset .gallery-example}
+
+### Output
+
+```{python}
+wide_participation = participation.assign(
+    eligible=[18000, 12000, 9500],
+    funding=[1250000, 920000, 740000],
+    duration_months=[12, 18, 12],
+)[["country", "eligible", "participants", "completion", "duration_months", "funding"]]
+
+(
+    attaviz.table(
+        wide_participation,
+        title="Program coverage and results",
+        subtitle="Illustrative participation, completion, duration, and funding",
+        source="Source: illustrative data. N/A indicates unavailable data.",
+    )
+    .cols_label(
+        country="Country",
+        eligible="Eligible people",
+        participants="Participants",
+        completion="Completion (%)",
+        duration_months="Duration (months)",
+        funding="Funding (USD)",
+    )
+    .fmt_integer(columns=["eligible", "participants", "duration_months"])
+    .fmt_percent(columns="completion", decimals=1)
+    .fmt_currency(columns="funding", currency="USD", decimals=0)
+    .opt_row_striping()
+    .tab_options(table_body_hlines_style="none")
 )
 ```
 

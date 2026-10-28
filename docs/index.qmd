@@ -11,9 +11,7 @@ css: homepage.css
 ::: {.home-hero-text}
 <h1>Altair charts in the World Bank Group style</h1>
 
-Attaviz applies the
-[World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/)
-to Altair. Run `attaviz.enable()` and every chart uses the theme.
+Attaviz applies the [World Bank Group Data Visualization Style Guide](https://worldbank.github.io/data-visualization-style-guide/) to Altair. Run `attaviz.enable()` and every chart uses the theme.
 
 [Read the quick start](getting-started/quickstart.qmd){.btn .btn-primary}
 [See the gallery](gallery.qmd){.btn .btn-outline-primary}
@@ -90,6 +88,12 @@ Bars, lines, scatter plots, annotations, and publication frames.
 ### [Maps](reference/maps.qmd)
 
 Choropleth classification, color, tooltips, and annotations.
+:::
+
+::: {.docs-link}
+### [Tables](reference/tables.qmd)
+
+Create and format tables, group columns, add footnotes, and export.
 :::
 
 ::: {.docs-link}

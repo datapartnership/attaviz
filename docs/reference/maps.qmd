@@ -71,9 +71,9 @@ policy; Attaviz does not bundle boundaries.
 - `value_label` supplies the legend and value-tooltip heading. If omitted, the
   value column name is humanized.
 - The label and formatted value are always the first two tooltip fields.
-- `tooltip` accepts a sequence of additional column names.
+- `tooltip` accepts a list of additional column names.
 - Missing values display “No data”.
-- `highlight` accepts one label or a sequence. Unknown labels raise an error.
+- `highlight` accepts one label or a list of labels. Unknown labels raise an error.
   Highlighting strengthens borders without changing data colors or the scale.
 
 ## Color meaning
@@ -91,7 +91,7 @@ Change maps use a symmetric domain around zero unless you provide `domain`.
 Sequential data crossing zero and change data lying on only one side of zero
 produce `UserWarning` because the map remains valid but deserves review.
 
-`palette` accepts a sequence containing at least two non-empty CSS color
+`palette` accepts a list containing at least two non-empty CSS color
 strings and overrides the semantic palette.
 
 ## Classification
@@ -158,3 +158,46 @@ Coordinates use WGS84 longitude and latitude. Longitude must fall within
 `"below"`, `"left"`, or `"right"`; `offset` is a non-negative pixel distance.
 Coordinates outside the mapped bounds produce `UserWarning`. Call the helper
 repeatedly to add multiple annotations.
+
+### Annotate and frame a map
+
+This runnable example creates two illustrative polygons without downloading
+boundaries. Real maps should use your own joined geographic data.
+
+```{python}
+import geopandas as gpd
+from shapely.geometry import box
+import attaviz
+
+attaviz.enable()
+regions = gpd.GeoDataFrame(
+    {"region_name": ["West", "East"], "poverty_rate": [0.18, 0.32]},
+    geometry=[box(105, -7, 106, -6), box(106, -7, 107, -6)],
+    crs="EPSG:4326",
+)
+chart = attaviz.choropleth(
+    regions,
+    value="poverty_rate",
+    label="region_name",
+    value_format="percent",
+    meaning="higher_is_worse",
+    title="Illustrative poverty rates by region",
+    width=600,
+    height=300,
+)
+chart = attaviz.add_map_annotation(
+    chart,
+    longitude=106.5,
+    latitude=-6.5,
+    text="East: 32%",
+    position="above",
+)
+attaviz.frame(
+    chart,
+    description="Two illustrative regions: West has an 18 percent poverty rate and East has 32 percent.",
+    source="Illustrative example data and geometry",
+)
+```
+
+Apply map annotations before `frame()`. See the [gallery](../gallery.qmd#maps)
+for examples using geographic boundaries.

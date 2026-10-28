@@ -2,14 +2,11 @@
 title: "Quick start"
 ---
 
-Attaviz gives you two ways to make charts in the WBG style. Enable the theme,
-and every Altair chart you write uses it. Or use a chart template, which also
-makes common editorial choices for you.
+Attaviz gives you two ways to make charts in the WBG style. Enable the theme and every Altair chart you write uses it, or use a chart template and it makes common editorial choices for you.
 
 ## Style any Altair chart
 
-Run `attaviz.enable()` once. Every Altair chart after that call uses WBG fonts,
-colors, and spacing. You do not need to change your chart code.
+Run `attaviz.enable()` once. Every Altair chart after that call uses WBG fonts, colors, and spacing. You do not need to change your chart code.
 
 ```{python}
 import altair as alt
@@ -33,8 +30,7 @@ alt.Chart(source, title="Barley yield by site").mark_bar().encode(
 
 ## Use a chart template
 
-A chart template builds a complete chart from summarized data. Pass your data
-to a template such as `attaviz.bar()`.
+A chart template builds a complete chart from summarized data. Pass your data to a template such as `attaviz.bar()`.
 
 ```{python}
 attaviz.bar(
@@ -46,24 +42,29 @@ attaviz.bar(
 )
 ```
 
-Templates handle recurring editorial choices such as sorting, labels,
-tooltips, highlighting, number formatting, and responsive width. They return
-ordinary Altair charts, so normal Altair customization remains available.
+Templates handle recurring editorial choices such as sorting, labels, tooltips, highlighting, number formatting, and responsive width. They return ordinary Altair charts, so further customization remains available.
 
-```python
+```{python}
 chart = attaviz.bar(
     source,
     category="site",
     value="yield",
     highlight="Morris",
+    title="Morris has the highest yield in this example",
+    subtitle="Illustrative mean yield, bushels per acre",
+    width=600,
 )
 
-chart = attaviz.frame(
+attaviz.frame(
     chart,
-    description="Horizontal bars comparing mean barley yield at six sites.",
-    source="Minnesota agricultural experiment stations",
+    description="Horizontal bars comparing illustrative barley yields at five sites; Morris is highest.",
+    source="Illustrative example data",
+    note="Values are provided for demonstration.",
+    byline="Attaviz",
 )
 ```
+
+Set `title` and `subtitle` on the template, then apply `frame()` after adding hover, annotations, or reference marks. The frame adds the footer and a required accessibility description; the description is not a visible subtitle. Prefixes such as “Source:” and “Note:” are added automatically. See the [complete frame example](../reference/charts.qmd#publication-frame) for source links and sizing.
 
 ## Create a styled table
 
@@ -90,12 +91,11 @@ Use the same DataFrame to show exact values alongside a chart:
 )
 ```
 
-`table()` returns a native Great Tables object, so you can chain its formatting and customization methods. Missing values display as `N/A`; numbers retain their precision until you format them. Tables work without calling `attaviz.enable()`.
+`table()` returns a native Great Tables object, so you can chain its formatting and customization methods. Missing values display as `N/A`; numbers retain their precision until you format them. Tables work without calling `attaviz.enable()`. Follow the [table guide](../reference/tables.qmd) for counts, percentages, currency, grouped headings, footnotes, and export.
 
 ## Size variants
 
-Three typography/spacing presets are available. Pick the one that matches
-the intended display width.
+Three typography/spacing presets are available. Pick the one that matches the intended display width.
 
 ```python
 attaviz.enable(size="small")   # charts under ~400px wide
@@ -107,10 +107,15 @@ attaviz.enable(size="large")   # wider than 700px
 
 To size a single chart without switching the global theme:
 
-```python
+```{python}
+chart = attaviz.bar(source, category="site", value="yield")
 chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
+chart
 ```
 
-Next, read the [chart template reference](../reference/charts.qmd),
-[map reference](../reference/maps.qmd), [table reference](../reference/tables.qmd), or browse the
+For a framed chart, set `width` and `height` on the template itself.
+
+Use [number and date formats](../reference/formatting.qmd) for axes, tooltips, and Python labels.
+
+Next, read the [chart template reference](../reference/charts.qmd), [map reference](../reference/maps.qmd), [table reference](../reference/tables.qmd), or browse the
 [gallery](../gallery.qmd).

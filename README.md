@@ -34,6 +34,16 @@ chart = attaviz.bar(
     value="population",
     title="Population by country (millions)",
 )
+
+chart = attaviz.frame(
+    chart,
+    description="Population bars for Indonesia (280 million) and Malaysia (35 million).",
+    source="Illustrative example data",
+)
 ```
+
+Set titles and subtitles on the chart template; apply `frame()` last for notes,
+source, byline, and accessibility metadata. See [formatting examples](https://datapartnership.github.io/attaviz/reference/formatting.html)
+for number and date formats in axes and tooltips.
 
 See the [documentation site](https://datapartnership.github.io/attaviz/) for the full gallery and reference.

@@ -1,6 +1,7 @@
 """Table rendering, input isolation, and optional dependency behavior."""
 
 import builtins
+from html.parser import HTMLParser
 
 import pandas as pd
 import pytest
@@ -38,7 +39,7 @@ def test_table_renders_and_supports_native_formatting():
     assert 'scope="col"' in html
     assert "gt_right" in html
     assert "Open Sans" in html
-    assert 'id="title" style="font-weight: 700;"' in html
+    assert 'id="title" style="font-weight: 700; padding-bottom: 0;"' in html
     pd.testing.assert_frame_equal(data, original)
     data.loc[0, "Country"] = "Changed"
     assert "Changed" not in result.as_raw_html()
@@ -90,3 +91,57 @@ def test_missing_tables_extra_has_install_instructions(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", without_great_tables)
     with pytest.raises(ImportError, match=r"attaviz\[tables\]"):
         attaviz.table(pd.DataFrame({"value": [1]}))
+
+
+@pytest.mark.parametrize("subtitle", [None, "Selected countries"])
+def test_table_groups_title_and_subtitle_without_removing_outer_spacing(subtitle):
+    class HeadingStyles(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.cells = {}
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if tag == "td" and attrs.get("id") in {"title", "subtitle"}:
+                self.cells[attrs["id"]] = attrs.get("style", "")
+
+    result = attaviz.table(
+        pd.DataFrame({"Country": ["Indonesia"]}), title="Example", subtitle=subtitle
+    )
+    headings = HeadingStyles()
+    headings.feed(result.as_raw_html())
+    title = headings.cells["title"]
+    assert "padding-top" not in title
+    if subtitle is None:
+        assert "subtitle" not in headings.cells
+        assert "padding-bottom" not in title
+    else:
+        assert "padding-bottom: 0;" in title
+        assert "padding-top: 3px;" in headings.cells["subtitle"]
+        assert "padding-bottom" not in headings.cells["subtitle"]
+
+
+def test_table_preserves_full_labels_with_native_widths_and_row_striping():
+    label = "People who completed the program (%)"
+    result = (
+        attaviz.table(
+            pd.DataFrame({"Country": ["Indonesia", "Malaysia"], "Share": [0.876, None]})
+        )
+        .cols_label(Share=label)
+        .cols_width(Country="150px", Share="130px")
+        .fmt_percent(columns="Share", decimals=1)
+        .opt_row_striping()
+    )
+    html = result.as_raw_html()
+    for text in [
+        label,
+        "Indonesia",
+        "87.6%",
+        "N/A",
+        "width:150px;",
+        "gt_right gt_striped",
+    ]:
+        assert text in html
+    assert 'data-quarto-disable-processing="true"' in html
+    assert "white-space: normal; overflow: visible;" in html
+    assert f"background-color: {attaviz.GREY_100}" in html

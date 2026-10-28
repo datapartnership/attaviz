@@ -11,9 +11,7 @@ attaviz.enable(size="small")      # charts under ~400px wide
 attaviz.enable(size="large")      # charts wider than ~700px
 ```
 
-`enable()` registers and activates a theme variant globally. Every subsequent
-Altair chart in the session picks up WBG typography, colors, grids, and mark
-styling.
+`enable()` registers and activates a theme variant globally. Every subsequent Altair chart in the session picks up WBG typography, colors, grids, and mark styling.
 
 ## What the theme applies
 
@@ -33,8 +31,7 @@ styling.
 | Point marks | 1px white stroke outline |
 | Geo shapes | 0.3px grey stroke, round joins |
 
-The values above are the `medium` defaults. `small` and `large` scale
-typography and spacing proportionally.
+The values above are the `medium` defaults. `small` and `large` scale typography and spacing proportionally.
 
 ## Size system
 
@@ -44,72 +41,77 @@ typography and spacing proportionally.
 | `medium` | 400–700px | default |
 | `large` | over 700px | expanded |
 
-Registered names: `wbg` (the default medium size), `wbg-small`, `wbg-medium`,
-and `wbg-large`.
+Registered names: `wbg` (the default medium size), `wbg-small`, `wbg-medium`, and `wbg-large`.
 
 ## Per-chart sizing
 
-```python
-chart = attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
+```{python}
+import altair as alt
+import pandas as pd
+import attaviz
+
+attaviz.enable()
+data = pd.DataFrame({"category": ["A", "B", "C"], "value": [10, 25, 18]})
+chart = attaviz.bar(data, category="category", value="value", title="Example values")
+attaviz.configure_size(chart, width=600, aspect_ratio="16:9")
 ```
 
+`configure_size()` adds top-level Altair configuration for a standalone chart.
+For a chart you will pass to `frame()`, specify `width` and `height` on the
+template and choose typography with `enable(size=...)`; Altair cannot nest a
+configured chart inside another composition.
+
 - `width` — target pixel width; the size variant is inferred automatically.
-- `aspect_ratio` — one of `"1:1"`, `"4:3"`, `"16:9"`, `"21:9"`, or a
-  `(w, h)` tuple.
+- `height` — optional explicit pixel height, overriding the aspect ratio.
+- `aspect_ratio` — `"1:1"`, `"4:3"`, `"3:2"`, `"16:9"`, `"2:1"`, `"square"`,
+  `"widescreen"`, or a numeric width/height ratio such as `1.5`.
 
 ## Calculating dimensions
 
-```python
-w, h = attaviz.calculate_dimensions(800, "16:9")  # → (800, 450)
+```{python}
+w, h = attaviz.calculate_dimensions(800, "16:9")  # (800, 450)
+attaviz.bar(data, category="category", value="value", width=w, height=h)
 ```
 
-Useful when you need the height up front (e.g. for a faceted chart whose
-rows must add up to a known total).
+Useful when you need the height up front (e.g. for a faceted chart whose rows must add up to a known total).
 
 ## Size context managers
 
-To override the active theme for a single chart (or a block of charts)
-without changing the global setting, use `alt.theme.enable` as a context
-manager against the registered variants:
+To override the active theme for a single chart (or a block of charts) without changing the global setting, use `alt.theme.enable` as a context manager against the registered variants:
 
-```python
-import altair as alt
-
+```{python}
 theme_registry = alt.theme if hasattr(alt, "theme") else alt.themes
 
 with theme_registry.enable("wbg-small"):
-    small_chart = make_chart().properties(width=300, height=150)
+    small_chart = attaviz.bar(data, category="category", value="value", width=300, height=150)
+    small_chart.to_dict()  # serialize/export while the temporary theme is active
 
 with theme_registry.enable("wbg-large"):
-    large_chart = make_chart().properties(width=600, height=300)
+    large_chart = attaviz.bar(data, category="category", value="value", width=800, height=400)
+    large_chart.to_dict()
 ```
 
-`alt.theme` is the current Altair interface; the fallback keeps this example
-compatible with older supported Altair 5 releases. When the block exits, the
-previously active theme is restored.
+`alt.theme` is the current Altair interface; the fallback keeps this example compatible with older supported Altair 5 releases. When the block exits, the previously active theme is restored. Altair applies the theme when serializing the chart, so display or export inside the block to capture that temporary theme.
 
 ## Theme configuration
 
-`wbg_theme()` returns the raw theme dictionary. Use `size`, `width`, `height`,
-and `aspect_ratio` to inspect or register a configuration for a specific output
-medium:
+`wbg_theme()` returns the raw theme dictionary. Use `size`, `width`, `height`, and `aspect_ratio` to inspect or register a configuration for a specific output medium:
 
-```python
-import altair as alt
-import attaviz
-
+```{python}
 @alt.theme.register("wbg-widescreen", enable=True)
 def wbg_widescreen():
     return alt.theme.ThemeConfig(
         attaviz.wbg_theme(width=1200, aspect_ratio="16:9")
     )
+
+chart = attaviz.bar(data, category="category", value="value", width=1200, height=675)
+chart.to_dict()  # includes the custom theme configuration
+attaviz.enable()  # restore the default for subsequent examples
 ```
 
-Typography and spacing scale off the supplied `width` using the size
-breakpoints above (so a 1200px theme inherits `large` tokens).
+Typography and spacing scale off the supplied `width` using the size breakpoints above (so a 1200px theme inherits `large` tokens).
 
-The registration example uses Altair 6. With Altair 5, register the same
-function through the legacy `alt.themes` registry.
+This registration example uses the current registry introduced in Altair 5.5. On older Altair 5 releases, register a function returning the raw `wbg_theme()` dictionary through `alt.themes.register()`, then enable it with `alt.themes.enable()`.
 
 ## Sizing constants
 
