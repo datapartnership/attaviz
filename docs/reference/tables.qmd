@@ -205,32 +205,6 @@ Image and PDF export use headless Chrome through Great Tables' `nokap`
 dependency. See the [Great Tables export guide](https://posit-dev.github.io/great-tables/user-guide/exporting-and-saving.html)
 for environment setup.
 
-## Design choices and publication checklist
-
-WBG tokens set the typography and colors. Table layout also draws on
-[Government Analysis Function guidance](https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-tables/),
-[GOV.UK's table component](https://design-system.service.gov.uk/components/table/),
-and [W3C's table accessibility guidance](https://www.w3.org/WAI/tutorials/tables/).
-UI decisions also draw on [Pencil & Paper's table patterns](https://www.pencilandpaper.io/articles/ux-pattern-analysis-enterprise-data-tables),
-[NN/g's table-task guidance](https://www.nngroup.com/articles/data-tables/),
-and [IBM Carbon's table guidelines](https://www.carbondesignsystem.com/building-blocks/core/components/data-table/guidelines).
-
-- Keep the title and subtitle together. Attaviz uses 3 px of padding between
-  them, with more space before the column labels. This is an Attaviz spacing
-  choice, not a WBG or universal table-design requirement.
-- Use a clear headline and a subtitle stating the measure, geography, and period.
-  Put units in column headings and choose consistent precision within each column.
-- Keep comparable numbers right-aligned; use natural order for dates and ordered
-  categories, or rank rows when the comparison calls for it.
-- Use rules and shading sparingly. Attaviz defaults to light horizontal rules
-  without vertical gridlines or alternating row shading.
-- Explain missing values. `N/A` can mean different things; distinguish unavailable,
-  inapplicable, and suppressed data when relevant. For this guide's unavailable
-  observations, you can use `formatted.sub_missing(missing_text="Not available")`.
-- Prefer HTML tables for web publication so headers and cells retain their
-  structural relationships. Check long labels, narrow screens, and zoomed text;
-  image export alone does not preserve accessible table navigation.
-
 ## API and defaults
 
 ```python
