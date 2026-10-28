@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "attaviz"
-version = "0.1.0"
+version = "0.1.1"
 description = "Publication-ready World Bank Group charts and maps for Altair"
 readme = "README.md"
 requires-python = ">=3.11"
